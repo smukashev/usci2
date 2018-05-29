@@ -17,12 +17,15 @@ sourceSets {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
+    compile project(':modules/model')
     compile 'org.codehaus.groovy:groovy-all:2.4.15'
     compile 'org.codehaus.groovy:groovy-backports-compat23:2.4.15'
     testCompile 'junit:junit:4.12'
+    compile 'log4j:log4j:1.2.17'
 }
 
