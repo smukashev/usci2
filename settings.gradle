@@ -1,2 +1,8 @@
 rootProject.name = 'usci'
-include 'modules/util', 'modules/model', 'modules/storage', 'modules/reciver', 'modules/core'
+
+include ':util'
+include ':model'
+include ':storage'
+include ':reciver'
+include ':core'
+
