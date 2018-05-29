@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+group = 'usci'
+version = '0.1.0'
+
+jar {
+    baseName = 'model'
+    version = '0.1.0'
+}
+
+sourceSets {
+    main {
+        java { srcDirs = ['src/main/java'] }
+        groovy { srcDirs = ['src/main/java'] }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.15'
+    compile 'org.codehaus.groovy:groovy-backports-compat23:2.4.15'
+    testCompile 'junit:junit:4.12'
+}
+
