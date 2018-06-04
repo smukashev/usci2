@@ -1,11 +1,10 @@
 package kz.bsbnb.usci.model.eav.meta;
 
 public class MetaValue implements MetaType {
-
     private MetaDataType dataType;
 
     public MetaValue() {
-        super();
+        /*An empty constructor*/
     }
 
     public MetaValue(MetaDataType typeCode) {

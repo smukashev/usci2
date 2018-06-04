@@ -1,10 +1,19 @@
 package kz.bsbnb.usci.model.eav.meta;
 
-public class MetaSet implements MetaType {
+import kz.bsbnb.usci.model.Errors;
+import kz.bsbnb.usci.model.Persistable;
+
+public class MetaSet extends Persistable implements MetaType {
     MetaType metaType;
 
     public MetaSet() {
-        super();
+        /*An empty constructor*/
+    }
+
+    public MetaSet(MetaType metaType) {
+        if (metaType == null)
+            throw new IllegalArgumentException(Errors.compose(Errors.E46));
+        this.metaType = metaType;
     }
 
     @Override
@@ -24,7 +33,7 @@ public class MetaSet implements MetaType {
     public MetaType getMetaType() {
         return metaType;
     }
-    
+
     @Override
     public String toString() {
         return null;

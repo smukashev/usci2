@@ -1,52 +1,54 @@
 package kz.bsbnb.usci.model.eav.meta;
 
-import java.util.*;
+import kz.bsbnb.usci.model.Errors;
+import kz.bsbnb.usci.model.Persistable;
 
-import kz.bsbnb.usci.util.DataUtils;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MetaClass implements MetaType {
-
+public class MetaClass extends Persistable implements MetaType {
     private String className;
-
     private String classTitle;
-
-    private Date beginDate;
-
-    private boolean disabled = false;
-
+    private LocalDate beginDate;
+    private String schemaData;
+    private String tableName;
+    private boolean deleted;
     private boolean searchable = false;
-
-    private boolean reference = false;
-
+    private boolean dictionary = false;
     private boolean parentIsKey = false;
-
-    /**
-     * @associates <{kz.bsbnb.usci.model.meta.MetaAttribute}>
-     */
     private Map<String, MetaAttribute> attributes = new HashMap<>();
 
     public MetaClass() {
-        this.beginDate = new Date();
-        DataUtils.toBeginningOfTheDay(beginDate);
+        super();
+        this.beginDate = LocalDate.now();
+        //DataUtils.toBeginningOfTheDay(beginDate); TODO:
     }
 
+    public MetaClass(long id) {
+        super(id);
+        this.beginDate = LocalDate.now();
+    }
+
+    public MetaClass(String className) {
+        this.className = className;
+        this.beginDate = LocalDate.now();
+        //DataUtils.toBeginningOfTheDay(beginDate); TODO:
+    }
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-
         MetaClass meta = new MetaClass();
         
         meta.className = this.className;
         meta.classTitle = this.classTitle;
-        meta.disabled = this.disabled;
         meta.beginDate = this.beginDate;
-        meta.reference = this.reference;
+        meta.dictionary = this.dictionary;
         meta.parentIsKey = this.parentIsKey;
 
         meta.attributes.putAll(this.attributes);
         
         return meta;
-        
     }
 
     public String getClassName() {
@@ -57,7 +59,41 @@ public class MetaClass implements MetaType {
         this.className = className;
     }
 
-    
+    public LocalDate getBeginDate() {
+        return beginDate;
+    }
+
+    public void setBeginDate(LocalDate beginDate) {
+        //Date newBeginDate = (LocalDate) beginDate.clone();
+        //DataUtils.toBeginningOfTheDay(newBeginDate);
+
+        this.beginDate = beginDate;
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public String getSchemaData() {
+        return schemaData;
+    }
+
+    public void setSchemaData(String schemaData) {
+        this.schemaData = schemaData;
+    }
+
     public void removeAttribute(String name) {
         attributes.remove(name);
 
@@ -79,25 +115,6 @@ public class MetaClass implements MetaType {
         metaAttribute.setName(name);
     }
 
-    public Date getBeginDate() {
-        return beginDate;
-    }
-
-    public void setBeginDate(Date beginDate) {
-        Date newBeginDate = (Date) beginDate.clone();
-        DataUtils.toBeginningOfTheDay(newBeginDate);
-
-        this.beginDate = newBeginDate;
-    }
-
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-    }
-
     public void removeAttributes() {
         searchable = false;
         attributes.clear();
@@ -117,12 +134,12 @@ public class MetaClass implements MetaType {
         return searchable;
     }
 
-    public boolean isReference() {
-        return reference;
+    public boolean isDictionary() {
+        return dictionary;
     }
 
-    public void setReference(boolean value) {
-        reference = value;
+    public void setDictionary(boolean value) {
+        dictionary = value;
     }
 
     public String getClassTitle() {
@@ -140,33 +157,24 @@ public class MetaClass implements MetaType {
     public void setParentIsKey(boolean parentIsKey) {
         this.parentIsKey = parentIsKey;
     }
-    
+
+    public MetaAttribute getMetaAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    public MetaType getAttributeType(String name) {
+        MetaAttribute metaAttribute = attributes.get(name);
+
+        if (metaAttribute == null)
+            throw new IllegalArgumentException(Errors.compose(Errors.E45,name, this.getClassName()));
+
+        return metaAttribute.getMetaType();
+    }
+
     @Override
     public boolean equals(Object obj) {
-    //        if (obj == this)
-    //            return true;
-    //        if (obj == null)
-    //            return false;
-    //        if (!(getClass() == obj.getClass()))
-    //            return false;
-    //        else {
-    //            MetaClass tmp = (MetaClass) obj;
-    //            if (this.getId() > 0 && tmp.getId() > 0 && this.getId() == tmp.getId())
-    //                return true;
-    //
-    //            if (tmp.getAttributesCount() != this.getAttributesCount())
-    //                return false;
-    //
-    //            Set<String> thisNames = this.attributes.keySet();
-    //            for (String name : thisNames) {
-    //                if (!(this.getAttributeType(name).equals(tmp.getAttributeType(name))))
-    //                    return false;
-    //            }
-    //            return !(tmp.isDisabled() != this.isDisabled() ||
-    //                    !tmp.getBeginDate().equals(this.getBeginDate()) ||
-    //                    !tmp.getClassName().equals(this.getClassName()));
-    //        }
-        return super.equals(obj);
+        //TODO:
+        return false;
     }
     
     @Override
@@ -174,7 +182,6 @@ public class MetaClass implements MetaType {
         int result = super.hashCode();
         result = 31 * result + className.hashCode();
         result = 31 * result + beginDate.hashCode();
-        result = 31 * result + (disabled ? 1 : 0);
         result = 31 * result + (searchable ? 1 : 0);
         result = 31 * result + attributes.hashCode();
         return result;

@@ -1,11 +1,11 @@
 package kz.bsbnb.usci.core.service;
 
-import kz.bsbnb.usci.model.eav.data.DataEntity;
+import kz.bsbnb.usci.model.eav.data.EavDataEntity;
 
 public interface EavDataService {
 
-    void process(DataEntity saving);
+    void process(EavDataEntity saving);
 
-    DataEntity load(long entityId);
+    EavDataEntity load(long entityId);
 
 }

@@ -3,20 +3,24 @@ package kz.bsbnb.usci.model.eav.meta;
 import kz.bsbnb.usci.model.Persistable;
 
 public class MetaAttribute extends Persistable {
-
     private String name;
     private String title;
     private MetaType metaType;
     private boolean isKey = false;
-    private int keySet = 1;
+    private Short keySet = 1;
     private boolean isFinal = false;
     private boolean isImmutable = false;
     private boolean isCumulative = false;
     private boolean isNullable = true;
-    private boolean isDisabled = false;
+    private String columnName;
+    private String columnType;
 
     public MetaAttribute() {
-        super();
+        /*An empty constructor*/
+    }
+
+    public MetaAttribute(long id) {
+        super(id);
     }
 
     public boolean isKey() {
@@ -27,12 +31,11 @@ public class MetaAttribute extends Persistable {
         this.isKey = isKey;
     }
 
-
-    public void setKeySet(int keySet) {
+    public void setKeySet(Short keySet) {
         this.keySet = keySet;
     }
 
-    public int getKeySet() {
+    public Short getKeySet() {
         return keySet;
     }
 
@@ -43,7 +46,6 @@ public class MetaAttribute extends Persistable {
     public void setNullable(boolean isNullable) {
         this.isNullable = isNullable;
     }
-
 
     public MetaType getMetaType() {
         return metaType;
@@ -86,22 +88,28 @@ public class MetaAttribute extends Persistable {
         this.name = name;
     }
 
-
     public boolean isCumulative() {
         return isCumulative;
     }
-
 
     public void setCumulative(boolean isCumulative) {
         this.isCumulative = isCumulative;
     }
 
-    public boolean isDisabled() {
-        return isDisabled;
+    public String getColumnName() {
+        return columnName;
     }
 
-    public void setDisabled(boolean isDisabled) {
-        this.isDisabled = isDisabled;
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public String getColumnType() {
+        return columnType;
+    }
+
+    public void setColumnType(String columnType) {
+        this.columnType = columnType;
     }
 
     public boolean equals(Object o) {
@@ -117,7 +125,6 @@ public class MetaAttribute extends Persistable {
         if (isImmutable != that.isImmutable) return false;
         if (isCumulative != that.isCumulative) return false;
         if (isNullable != that.isNullable) return false;
-        if (isDisabled != that.isDisabled) return false;
         if (!name.equals(that.name)) return false;
         if (!title.equals(that.title)) return false;
         return metaType.equals(that.metaType);
@@ -134,7 +141,6 @@ public class MetaAttribute extends Persistable {
         result = 31 * result + (isImmutable ? 1 : 0);
         result = 31 * result + (isCumulative ? 1 : 0);
         result = 31 * result + (isNullable ? 1 : 0);
-        result = 31 * result + (isDisabled ? 1 : 0);
         return result;
     }
 
@@ -149,7 +155,6 @@ public class MetaAttribute extends Persistable {
                 ", isImmutable=" + isImmutable +
                 ", isCumulative=" + isCumulative +
                 ", isNullable=" + isNullable +
-                ", isDisabled=" + isDisabled +
                 '}';
     }
 

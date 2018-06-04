@@ -1,8 +1,11 @@
 package kz.bsbnb.usci.model.eav.meta;
 
+import kz.bsbnb.usci.model.Errors;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 public enum MetaDataType {
@@ -40,58 +43,16 @@ public enum MetaDataType {
             case INTEGER:
                 return Integer.class;
             case DATE:
-                return Date.class;
+                return LocalDate.class;
             case STRING:
                 return String.class;
             case BOOLEAN:
                 return Boolean.class;
             case DOUBLE:
                 return Double.class;
-            // TODO
-//            default:
-//                throw new IllegalArgumentException(Errors.compose(Errors.E49));
+            default:
+                throw new IllegalArgumentException(Errors.compose(Errors.E49));
         }
-        return null;
-    }
-
-    public static Object getCastObject(MetaDataType typeCode, String value) {
-        switch(typeCode) {
-            case INTEGER:
-                return Integer.parseInt(value);
-            case DATE:
-                Date date = null;
-
-                try {
-                    synchronized (MetaDataType.class) {
-                        date = dateFormatSlash.parse(value);
-                    }
-                } catch (ParseException e) {
-                    try {
-                        synchronized (MetaDataType.class) {
-                            date = dateFormatDot.parse(value);
-                        }
-                    } catch (ParseException ex) {
-                        e.printStackTrace();
-                    }
-                }
-
-                return date;
-            case STRING:
-                return value;
-            case BOOLEAN:
-                try {
-                    int i = Integer.parseInt(value);
-                    return i == 1;
-                } catch (Exception e) {
-                    return Boolean.parseBoolean(value);
-                }
-            case DOUBLE:
-                return Double.parseDouble(value);
-            // TODO
-//            default:
-//                throw new IllegalArgumentException(Errors.compose(Errors.E127));
-        }
-        return null;
     }
 
     public Class<?> getDataTypeClass() {

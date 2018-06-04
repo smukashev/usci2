@@ -204,7 +204,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.meta;;###;;MetaAttribute' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.metaClass;;###;;MetaAttribute' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='336.8984375' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id813564dd-cbb0-44db-b0b8-e368269af9df'>
@@ -409,7 +409,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.meta;;###;;MetaValue' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.metaClass;;###;;MetaValue' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='218.4609375' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id97598986-0105-40e8-838f-f4d6c0d1a426'>
@@ -614,7 +614,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDI;;kz.bsbnb.usci.model.meta;;###;;MetaType' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDI;;kz.bsbnb.usci.model.metaClass;;###;;MetaType' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='120.0' width='135.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id527886c7-3155-4137-b7fd-fe724a35dc5d'>
@@ -819,7 +819,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.meta;;###;;MetaSet' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.metaClass;;###;;MetaSet' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='203.65625' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='idf5feecab-c83a-4f78-8f85-f912ae41043b'>
@@ -1024,7 +1024,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.meta;;###;;MetaClass' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.model.metaClass;;###;;MetaClass' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='322.09375' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id4d8a7ab0-9c51-4b9a-bd51-2d882d020d27'>
@@ -1291,7 +1291,7 @@
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
       <property xmi:type='DI:Property' key='ShowEnumValuesCompartment' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDE;;kz.bsbnb.usci.model.meta;;###;;MetaDataType' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDE;;kz.bsbnb.usci.model.metaClass;;###;;MetaDataType' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='123.4375' width='121.0'/>
     </contained>
     <contained xmi:type='DI:GraphEdge' xmi:id='id5ecb8f4e-f55b-4005-9850-e03d6dddd8b5' anchor='id4cc21e9c-b61c-43a8-9c0b-1ae700829e2d idbd2d36bc-7730-4526-b786-c2ab9579a4dc'>
@@ -1300,7 +1300,7 @@
       <property xmi:type='DI:Property' key='EdgeType' value='1'/>
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='lineColor' value='#646464'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.meta;;MetaValue;;kz.bsbnb.usci.model.meta.MetaType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.metaClass;;MetaValue;;kz.bsbnb.usci.model.metaClass.MetaType'/>
       <waypoint xmi:type='DI:Point' x='136.58334350585938' y='656.8984375'/>
       <waypoint xmi:type='DI:Point' x='136.58334350585938' y='636.6984252929688'/>
       <waypoint xmi:type='DI:Point' x='146.00001525878906' y='636.6984252929688'/>
@@ -1334,7 +1334,7 @@
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='showCardinality' value='true'/>
       <property xmi:type='DI:Property' key='showRoleNames' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.meta;;MetaValue;;dataType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.metaClass;;MetaValue;;dataType'/>
       <waypoint xmi:type='DI:Point' x='69.91668701171875' y='656.8984375'/>
       <waypoint xmi:type='DI:Point' x='69.91668701171875' y='636.6984252929688'/>
       <waypoint xmi:type='DI:Point' x='60.50001525878906' y='636.6984252929688'/>
@@ -1366,7 +1366,7 @@
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='showCardinality' value='true'/>
       <property xmi:type='DI:Property' key='showRoleNames' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.meta;;MetaAttribute;;metaType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.metaClass;;MetaAttribute;;metaType'/>
       <waypoint xmi:type='DI:Point' x='521.0000610351562' y='220.0'/>
       <waypoint xmi:type='DI:Point' x='521.0000610351562' y='184.79998779296875'/>
       <waypoint xmi:type='DI:Point' x='366.0000305175781' y='184.79998779296875'/>
@@ -1378,7 +1378,7 @@
       <property xmi:type='DI:Property' key='EdgeType' value='1'/>
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='lineColor' value='#646464'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.meta;;MetaSet;;kz.bsbnb.usci.model.meta.MetaType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.metaClass;;MetaSet;;kz.bsbnb.usci.model.metaClass.MetaType'/>
       <waypoint xmi:type='DI:Point' x='237.66668701171875' y='220.0'/>
       <waypoint xmi:type='DI:Point' x='237.66668701171875' y='184.79998779296875'/>
       <waypoint xmi:type='DI:Point' x='298.5000305175781' y='184.79998779296875'/>
@@ -1410,7 +1410,7 @@
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='showCardinality' value='true'/>
       <property xmi:type='DI:Property' key='showRoleNames' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.meta;;MetaSet;;metaType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.metaClass;;MetaSet;;metaType'/>
       <waypoint xmi:type='DI:Point' x='304.3333435058594' y='220.0'/>
       <waypoint xmi:type='DI:Point' x='304.3333435058594' y='199.79998779296875'/>
       <waypoint xmi:type='DI:Point' x='321.0000305175781' y='199.79998779296875'/>
@@ -1422,7 +1422,7 @@
       <property xmi:type='DI:Property' key='EdgeType' value='1'/>
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='lineColor' value='#646464'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.meta;;MetaClass;;kz.bsbnb.usci.model.meta.MetaType'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDIMP;;kz.bsbnb.usci.model.metaClass;;MetaClass;;kz.bsbnb.usci.model.metaClass.MetaType'/>
       <waypoint xmi:type='DI:Point' x='425.1667175292969' y='656.8984375'/>
       <waypoint xmi:type='DI:Point' x='425.1667175292969' y='636.6984252929688'/>
       <waypoint xmi:type='DI:Point' x='396.0' y='636.6984252929688'/>
@@ -1456,7 +1456,7 @@
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='showCardinality' value='true'/>
       <property xmi:type='DI:Property' key='showRoleNames' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.meta;;MetaClass;;attributes'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.model.metaClass;;MetaClass;;attributes'/>
       <waypoint xmi:type='DI:Point' x='491.8333740234375' y='656.8984375'/>
       <waypoint xmi:type='DI:Point' x='491.8333740234375' y='636.6984252929688'/>
       <waypoint xmi:type='DI:Point' x='521.0000610351562' y='636.6984252929688'/>

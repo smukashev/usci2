@@ -1,35 +1,38 @@
 package kz.bsbnb.usci.model.eav.data;
 
-import kz.bsbnb.usci.model.Persistable;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
+import kz.bsbnb.usci.model.eav.meta.MetaType;
 
-public class DataValue extends Persistable {
-
-
-    private DataContainer dataContainer;
-
+public class EavDataSimple implements EavData {
+    private EavData dataContainer;
     private MetaAttribute metaAttribute;
-
-    private DataValue newDataValue = null;
-
+    private EavDataSimple newEavDataSimple = null;
     private Object value;
 
-    public DataValue() {
-        super();
+    public EavDataSimple() {
+        /*An empty constructor*/
     }
 
-    public DataContainer getDataContainer() {
+    public EavDataSimple(Object value) {
+        this.value = value;
+    }
+
+    @Override
+    public EavData getDataContainer() {
         return dataContainer;
     }
 
-    public void setDataContainer(DataContainer dataContainer) {
+    @Override
+    public void setDataContainer(EavData dataContainer) {
         this.dataContainer = dataContainer;
     }
 
+    @Override
     public MetaAttribute getMetaAttribute() {
         return metaAttribute;
     }
 
+    @Override
     public void setMetaAttribute(MetaAttribute metaAttribute) {
         this.metaAttribute = metaAttribute;
     }
@@ -42,12 +45,32 @@ public class DataValue extends Persistable {
         this.value = value;
     }
 
-    public void setNewDataValue(DataValue dataValue) {
-        this.newDataValue = dataValue;
+    public void setNewEavDataSimple(EavDataSimple eavDataSimple) {
+        this.newEavDataSimple = eavDataSimple;
     }
 
-    public DataValue getNewDataValue() {
-        return newDataValue;
+    public EavDataSimple getNewEavDataSimple() {
+        return newEavDataSimple;
+    }
+
+    @Override
+    public void setMetaType(MetaType metaType) {
+
+    }
+
+    @Override
+    public MetaType getMetaType() {
+        return null;
+    }
+
+    @Override
+    public boolean isSet() {
+        return false;
+    }
+
+    @Override
+    public boolean isComplex() {
+        return false;
     }
 
     @Override
@@ -61,7 +84,7 @@ public class DataValue extends Persistable {
         if (!(getClass() == obj.getClass()))
             return false;
         else {
-            DataValue that = (DataValue) obj;
+            EavDataSimple that = (EavDataSimple) obj;
             return value != null ? value.equals(that.value) : that.value == null;
         }
     }
@@ -74,7 +97,7 @@ public class DataValue extends Persistable {
     }
 
     @Override
-    public DataValue clone() {
+    public EavDataSimple clone() {
         return null;
     }
 

@@ -7,7 +7,6 @@ bootJar {
 
 dependencies {
     compile project(':model')
-
     compile("org.springframework.boot:spring-boot-starter-jdbc")
 
     runtime("com.oracle:${ojdbcVersion}")
