@@ -1,6 +1,6 @@
 package kz.bsbnb.usci.model.eav.data;
 
-public enum DataOperationType {
+public enum OperType {
     NEW(1),
     DELETE(2),
     OPEN(3),
@@ -11,7 +11,7 @@ public enum DataOperationType {
 
     private int value;
 
-    DataOperationType(int value) {
+    OperType(int value) {
         this.value = value;
     }
 

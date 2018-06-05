@@ -12,6 +12,7 @@ public class MetaClass extends Persistable implements MetaType {
     private String classTitle;
     private LocalDate beginDate;
     private String schemaData;
+    private String schemaXml;
     private String tableName;
     private boolean deleted;
     private boolean searchable = false;
@@ -92,6 +93,14 @@ public class MetaClass extends Persistable implements MetaType {
 
     public void setSchemaData(String schemaData) {
         this.schemaData = schemaData;
+    }
+
+    public String getSchemaXml() {
+        return schemaXml;
+    }
+
+    public void setSchemaXml(String schemaXml) {
+        this.schemaXml = schemaXml;
     }
 
     public void removeAttribute(String name) {

@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * @author Baurzhan Makhambetov
+ */
 
 @Repository
 public class MetaClassRepositoryImpl implements MetaClassRepository, InitializingBean {

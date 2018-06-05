@@ -2,9 +2,10 @@ package kz.bsbnb.usci.core.test;
 
 import kz.bsbnb.usci.core.service.EavDataService;
 import kz.bsbnb.usci.core.factory.EavDataFactory;
-import kz.bsbnb.usci.model.eav.data.EavDataEntity;
-import kz.bsbnb.usci.model.eav.data.DataOperationType;
-import kz.bsbnb.usci.model.eav.data.EavDataSimple;
+import kz.bsbnb.usci.core.service.EavXmlService;
+import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.data.OperType;
+import kz.bsbnb.usci.model.eav.data.BaseSimple;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class EavXmlServiceTest {
     @Autowired
     private EavDataFactory eavDataFactory;
     @Autowired
-    private EavDataService eavDataService;
+    private EavXmlService eavXmlService;
 
     @Before
     public void setUp() {
@@ -29,45 +30,44 @@ public class EavXmlServiceTest {
 
     @Test
     public void test0() {
-        long creditorId = 2;
-        LocalDate reportDate = LocalDate.of(2018, 1, 1);
+        BaseEntity credit = eavDataFactory.createBaseEntity("credit");
+        credit.setId(2L);
+        credit.setRespondentId(245L);
+        credit.setOperation(OperType.INSERT);
+        credit.setReportDate(LocalDate.of(2018, 1, 1));
 
-        EavDataEntity credit = eavDataFactory.createDataEntity("credit");
-        credit.setOperation(DataOperationType.INSERT);
-        credit.setReportDate(reportDate);
-
-        EavDataEntity contract = eavDataFactory.createDataEntity("contract");
-        contract.put("no", new EavDataSimple("AICC.1354927"));
-        contract.put("date", new EavDataSimple(LocalDate.of(2017, 8, 31)));
+        BaseEntity contract = eavDataFactory.createBaseEntity("contract");
+        contract.put("no", new BaseSimple("AICC.1354927"));
+        contract.put("date", new BaseSimple(LocalDate.of(2017, 8, 31)));
         credit.put("contract", contract);
 
-        EavDataEntity currency = eavDataFactory.createDataEntity("ref_currency");
-        currency.put("short_name", new EavDataSimple("KZT"));
+        BaseEntity currency = eavDataFactory.createBaseEntity("ref_currency");
+        currency.put("short_name", new BaseSimple("KZT"));
         credit.put("currency", currency);
 
-        credit.put("interest_rate_yearly", new EavDataSimple(24D));
-        credit.put("actual_issue_date", new EavDataSimple(LocalDate.of(2017, 8, 31)));
+        credit.put("interest_rate_yearly", new BaseSimple(24D));
+        credit.put("actual_issue_date", new BaseSimple(LocalDate.of(2017, 8, 31)));
 
-        EavDataEntity creditPurpose = eavDataFactory.createDataEntity("ref_credit_purpose");
-        currency.put("code", new EavDataSimple("01"));
+        BaseEntity creditPurpose = eavDataFactory.createBaseEntity("ref_credit_purpose");
+        currency.put("code", new BaseSimple("01"));
         credit.put("credit_purpose", creditPurpose);
 
-        EavDataEntity creditObject = eavDataFactory.createDataEntity("ref_credit_object");
-        currency.put("code", new EavDataSimple("03"));
+        BaseEntity creditObject = eavDataFactory.createBaseEntity("ref_credit_object");
+        currency.put("code", new BaseSimple("03"));
         credit.put("credit_object", creditObject);
 
-        credit.put("amount", new EavDataSimple(100000D));
+        credit.put("amount", new BaseSimple(100000D));
 
-        EavDataEntity financeSource = eavDataFactory.createDataEntity("ref_finance_source");
-        currency.put("code", new EavDataSimple("01"));
+        BaseEntity financeSource = eavDataFactory.createBaseEntity("ref_finance_source");
+        financeSource.put("code", new BaseSimple("01"));
         credit.put("finance_source", financeSource);
 
-        credit.put("has_currency_earn", new EavDataSimple(Boolean.FALSE));
+        credit.put("has_currency_earn", new BaseSimple(Boolean.FALSE));
 
         //TODO: creditor branch
         //TODO: portfolio, portfolio_msfo,
 
-        eavDataService.process(credit);
+        eavXmlService.process(credit);
     }
 
 

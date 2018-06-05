@@ -1,30 +1,32 @@
 package kz.bsbnb.usci.model.eav.data;
 
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
+import kz.bsbnb.usci.model.eav.meta.MetaDataType;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
+import kz.bsbnb.usci.model.eav.meta.MetaValue;
 
-public class EavDataSimple implements EavData {
-    private EavData dataContainer;
+public class BaseSimple implements BaseType {
+    private BaseType baseContainer;
     private MetaAttribute metaAttribute;
-    private EavDataSimple newEavDataSimple = null;
+    private Object newValue = null;
     private Object value;
 
-    public EavDataSimple() {
+    public BaseSimple() {
         /*An empty constructor*/
     }
 
-    public EavDataSimple(Object value) {
+    public BaseSimple(Object value) {
         this.value = value;
     }
 
     @Override
-    public EavData getDataContainer() {
-        return dataContainer;
+    public BaseType getBaseContainer() {
+        return baseContainer;
     }
 
     @Override
-    public void setDataContainer(EavData dataContainer) {
-        this.dataContainer = dataContainer;
+    public void setBaseContainer(BaseType baseContainer) {
+        this.baseContainer = baseContainer;
     }
 
     @Override
@@ -45,12 +47,12 @@ public class EavDataSimple implements EavData {
         this.value = value;
     }
 
-    public void setNewEavDataSimple(EavDataSimple eavDataSimple) {
-        this.newEavDataSimple = eavDataSimple;
+    public void setNewValue(Object baseSimple) {
+        this.newValue = baseSimple;
     }
 
-    public EavDataSimple getNewEavDataSimple() {
-        return newEavDataSimple;
+    public Object getNewValue() {
+        return newValue;
     }
 
     @Override
@@ -84,9 +86,13 @@ public class EavDataSimple implements EavData {
         if (!(getClass() == obj.getClass()))
             return false;
         else {
-            EavDataSimple that = (EavDataSimple) obj;
+            BaseSimple that = (BaseSimple) obj;
             return value != null ? value.equals(that.value) : that.value == null;
         }
+    }
+
+    public Object getRmValue() {
+        return MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), value);
     }
 
     @Override
@@ -97,7 +103,7 @@ public class EavDataSimple implements EavData {
     }
 
     @Override
-    public EavDataSimple clone() {
+    public BaseSimple clone() {
         return null;
     }
 

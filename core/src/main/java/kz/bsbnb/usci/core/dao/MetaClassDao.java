@@ -4,6 +4,10 @@ import kz.bsbnb.usci.model.eav.meta.MetaClass;
 
 import java.util.List;
 
+/**
+ * @author BSB
+ */
+
 public interface MetaClassDao {
 
     MetaClass load(String className);

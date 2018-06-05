@@ -4,21 +4,23 @@ import java.time.LocalDate;
 import java.util.*;
 
 import kz.bsbnb.usci.model.Errors;
+import kz.bsbnb.usci.model.Persistable;
 import kz.bsbnb.usci.model.eav.meta.*;
 
 /**
  * @author BSB
  */
 
-public class EavDataEntity implements EavData {
+public class BaseEntity extends Persistable implements BaseType {
     private MetaClass metaClass;
     private LocalDate reportDate;
-    private EavData dataContainer;
+    private BaseType baseContainer;
+    private Long respondentId;
     private MetaAttribute metaAttribute;
-    private DataOperationType dataOperationType;
-    private Map<String, EavData> values = new HashMap<>();
+    private OperType operType;
+    private Map<String, BaseType> values = new HashMap<>();
 
-    public EavDataEntity() {
+    public BaseEntity() {
         /*An empty constructor*/
     }
 
@@ -32,12 +34,12 @@ public class EavDataEntity implements EavData {
         this.reportDate = reportDate;
     }
 
-    public DataOperationType getOperation() {
-        return dataOperationType;
+    public OperType getOperation() {
+        return operType;
     }
 
-    public void setOperation(DataOperationType type) {
-        dataOperationType = type;
+    public void setOperation(OperType type) {
+        operType = type;
     }
 
     public MetaClass getMetaClass() {
@@ -50,7 +52,7 @@ public class EavDataEntity implements EavData {
 
     //endregion
 
-    public void put(final String attribute, EavData data) {
+    public void put(final String attribute, BaseType data) {
         MetaAttribute metaAttribute = metaClass.getMetaAttribute(attribute);
         MetaType type = metaAttribute.getMetaType();
 
@@ -65,30 +67,34 @@ public class EavDataEntity implements EavData {
 
         if (type.isComplex())
             if (type.isSet())
-                expValueClass = EavDataSet.class;
+                expValueClass = BaseSet.class;
             else
-                expValueClass = EavDataEntity.class;
+                expValueClass = BaseEntity.class;
         else {
             if (type.isSet()) {
-                expValueClass = EavDataSet.class;
+                expValueClass = BaseSet.class;
                 valueClass = data.getClass();
             } else {
                 MetaValue metaValue = (MetaValue) type;
-                valueClass = ((EavDataSimple)data).getValue().getClass();
-                expValueClass = metaValue.getDataType().getDataTypeClass();
+                valueClass = ((BaseSimple)data).getValue().getClass();
+                expValueClass = metaValue.getMetaDataType().getDataTypeClass();
             }
         }
 
         if (expValueClass == null || !expValueClass.isAssignableFrom(valueClass))
             throw new IllegalArgumentException(Errors.compose(Errors.E27, metaClass.getClassName(),expValueClass,valueClass));
 
-        data.setDataContainer(this);
+        data.setBaseContainer(this);
         data.setMetaAttribute(metaAttribute);
 
         values.put(attribute, data);
     }
 
-    public EavDataSimple getDataValue(String attribute) {
+    public Map<String, BaseType> getValues() {
+        return values;
+    }
+
+    public BaseSimple getDataValue(String attribute) {
         //TODO:
         return null;
     }
@@ -113,7 +119,7 @@ public class EavDataEntity implements EavData {
     }
 
     @Override
-    public EavDataEntity clone() {
+    public BaseEntity clone() {
         //TODO:
         return null;
     }
@@ -129,8 +135,8 @@ public class EavDataEntity implements EavData {
     }
 
     @Override
-    public EavData getDataContainer() {
-        return dataContainer;
+    public BaseType getBaseContainer() {
+        return baseContainer;
     }
 
     @Override
@@ -144,20 +150,26 @@ public class EavDataEntity implements EavData {
     }
 
     @Override
-    public void setDataContainer(EavData dataContainer) {
-        this.dataContainer = dataContainer;
+    public void setBaseContainer(BaseType baseContainer) {
+        this.baseContainer = baseContainer;
+    }
+
+    public Long getRespondentId() {
+        return respondentId;
+    }
+
+    public void setRespondentId(Long respondentId) {
+        this.respondentId = respondentId;
     }
 
     @Override
     public boolean isSet() {
-        // TODO Implement this method
         return false;
     }
 
     @Override
     public boolean isComplex() {
-        // TODO Implement this method
-        return false;
+        return true;
     }
     
 }

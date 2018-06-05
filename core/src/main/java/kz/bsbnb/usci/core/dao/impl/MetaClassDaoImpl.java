@@ -1,5 +1,6 @@
-package kz.bsbnb.usci.core.dao;
+package kz.bsbnb.usci.core.dao.impl;
 
+import kz.bsbnb.usci.core.dao.MetaClassDao;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.meta.*;
 import kz.bsbnb.usci.util.Converter;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+/**
+ * @author BSB
+ */
 
 @Repository
 public class MetaClassDaoImpl implements MetaClassDao {
@@ -208,6 +213,7 @@ public class MetaClassDaoImpl implements MetaClassDao {
             metaClass.setBeginDate(Converter.convertToLocalDate(rs.getDate("report_date")));
             metaClass.setClassName(rs.getString("name"));
             metaClass.setClassTitle(rs.getString("title"));
+            metaClass.setSchemaXml(rs.getString("schema_xml"));
             metaClass.setSchemaData(rs.getString("schema_data"));
             metaClass.setTableName(rs.getString("table_name"));
             metaClass.setDictionary(rs.getByte("is_dictionary") == 1);

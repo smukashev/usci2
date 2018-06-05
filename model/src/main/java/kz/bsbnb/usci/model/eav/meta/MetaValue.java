@@ -1,22 +1,22 @@
 package kz.bsbnb.usci.model.eav.meta;
 
 public class MetaValue implements MetaType {
-    private MetaDataType dataType;
+    private MetaDataType metaDataType;
 
     public MetaValue() {
         /*An empty constructor*/
     }
 
-    public MetaValue(MetaDataType typeCode) {
-        this.dataType = typeCode;
+    public MetaValue(MetaDataType metaDataType) {
+        this.metaDataType = metaDataType;
     }
 
-    public MetaDataType getDataType() {
-        return dataType;
+    public MetaDataType getMetaDataType() {
+        return metaDataType;
     }
 
-    public void setDataType(MetaDataType type) {
-        this.dataType = type;
+    public void setMetaDataType(MetaDataType type) {
+        this.metaDataType = type;
     }
 
     @Override
@@ -40,12 +40,12 @@ public class MetaValue implements MetaType {
             return false;
         else {
             MetaValue tmp = (MetaValue) obj;
-            return tmp.getDataType() == this.getDataType();
+            return tmp.getMetaDataType() == this.getMetaDataType();
         }
     }
 
     public int hashCode() {
-        return dataType.hashCode();
+        return metaDataType.hashCode();
     }
 
     @Override

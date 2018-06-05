@@ -3,7 +3,7 @@ package kz.bsbnb.usci.model.eav.data;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
 
-public interface EavData {
+public interface BaseType {
 
     void setMetaType(MetaType metaType);
 
@@ -13,9 +13,9 @@ public interface EavData {
 
     MetaAttribute getMetaAttribute();
 
-    EavData getDataContainer();
+    BaseType getBaseContainer();
 
-    void setDataContainer(EavData dataContainer);
+    void setBaseContainer(BaseType baseContainer);
 
     boolean isSet();
 

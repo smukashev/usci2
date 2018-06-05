@@ -6,8 +6,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-ption;
-
 public class Converter {
     public static Timestamp convertToSqlTimestamp(LocalDateTime date) {
         return date == null? null: Timestamp.valueOf(date);

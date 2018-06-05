@@ -1,7 +1,7 @@
 package kz.bsbnb.usci.core.factory;
 
 import kz.bsbnb.usci.core.repository.MetaClassRepository;
-import kz.bsbnb.usci.model.eav.data.EavDataEntity;
+import kz.bsbnb.usci.model.eav.data.BaseEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,10 +16,12 @@ public class EavDataFactory {
         this.metaClassRepository = metaClassRepository;
     }
 
-    public EavDataEntity createDataEntity(String metaClassName) {
-        EavDataEntity eavDataEntity = new EavDataEntity();
-        eavDataEntity.setMetaClass(metaClassRepository.getMetaClass(metaClassName));
-        return eavDataEntity;
+    public BaseEntity createBaseEntity(String metaClassName) {
+        BaseEntity baseEntity = new BaseEntity();
+        baseEntity.setMetaClass(metaClassRepository.getMetaClass(metaClassName));
+        return baseEntity;
     }
+
+
 
 }

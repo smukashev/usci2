@@ -7,13 +7,13 @@ import java.util.Set;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
 
-public class EavDataSet implements EavData {
-    private EavData dataConainer;
+public class BaseSet implements BaseType {
+    private BaseType dataContainer;
     private MetaType metaType;
     private MetaAttribute metaAttribute;
-    private Set<EavData> values = new HashSet<>();
+    private Set<BaseType> values = new HashSet<>();
 
-    public EavDataSet() {
+    public BaseSet() {
         /*An empty constructor*/
     }
 
@@ -21,14 +21,18 @@ public class EavDataSet implements EavData {
         return metaType;
     }
 
-    public void add(EavData value) {
+    public void add(BaseType value) {
         //TODO: реализовать до конца
-        value.setDataContainer(this);
+        value.setBaseContainer(this);
         values.add(value);
     }
 
-    public void remove(EavDataSimple value) {
+    public void remove(BaseSimple value) {
         values.remove(value);
+    }
+
+    public Set<BaseType> getValues() {
+        return values;
     }
 
     @Override
@@ -46,7 +50,7 @@ public class EavDataSet implements EavData {
         return 0;
     }
 
-    public EavDataSet clone() {
+    public BaseSet clone() {
         return null;
     }
 
@@ -76,13 +80,13 @@ public class EavDataSet implements EavData {
     }
 
     @Override
-    public EavData getDataContainer() {
-        return dataConainer;
+    public BaseType getBaseContainer() {
+        return dataContainer;
     }
 
     @Override
-    public void setDataContainer(EavData dataContainer) {
-        this.dataConainer = dataContainer;
+    public void setBaseContainer(BaseType baseContainer) {
+        this.dataContainer = baseContainer;
     }
 
 }
