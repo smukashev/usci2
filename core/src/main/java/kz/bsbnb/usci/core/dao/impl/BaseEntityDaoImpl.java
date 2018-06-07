@@ -1,7 +1,7 @@
 package kz.bsbnb.usci.core.dao.impl;
 
 import kz.bsbnb.usci.core.dao.BaseEntityDao;
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;

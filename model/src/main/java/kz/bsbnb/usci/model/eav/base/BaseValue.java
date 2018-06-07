@@ -1,43 +1,41 @@
-package kz.bsbnb.usci.model.eav.data;
+package kz.bsbnb.usci.model.eav.base;
 
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaDataType;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
 import kz.bsbnb.usci.model.eav.meta.MetaValue;
 
-public class BaseSimple implements BaseType {
-    private BaseType baseContainer;
+public class BaseValue implements BaseType {
+    private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
     private Object value;
 
-    public BaseSimple() {
+    public BaseValue() {
         /*An empty constructor*/
     }
 
-    public BaseSimple(Object value) {
+    public BaseValue(Object value) {
         this.value = value;
     }
 
-    @Override
-    public BaseType getBaseContainer() {
+    public BaseContainer getBaseContainer() {
         return baseContainer;
     }
 
-    @Override
-    public void setBaseContainer(BaseType baseContainer) {
+    public void setBaseContainer(BaseContainer baseContainer) {
         this.baseContainer = baseContainer;
     }
 
-    @Override
-    public MetaAttribute getMetaAttribute() {
+    /*@Override
+    public MetaAttribute getBaseAttribute() {
         return metaAttribute;
     }
 
     @Override
-    public void setMetaAttribute(MetaAttribute metaAttribute) {
+    public void setBaseAttribute(MetaAttribute metaAttribute) {
         this.metaAttribute = metaAttribute;
-    }
+    }*/
 
     public Object getValue() {
         return value;
@@ -55,24 +53,34 @@ public class BaseSimple implements BaseType {
         return newValue;
     }
 
-    @Override
+    /*@Override
     public void setMetaType(MetaType metaType) {
 
+    }*/
+
+    public MetaAttribute getMetaAttribute() {
+        return metaAttribute;
+    }
+
+    public void setMetaAttribute(MetaAttribute baseAttribute) {
+        this.metaAttribute = metaAttribute;
     }
 
     @Override
     public MetaType getMetaType() {
-        return null;
+        return metaAttribute.getMetaType();
     }
 
     @Override
     public boolean isSet() {
-        return false;
+        //TODO: необходимо удалить
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isComplex() {
-        return false;
+        //TODO: необходимо удалить
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -86,14 +94,15 @@ public class BaseSimple implements BaseType {
         if (!(getClass() == obj.getClass()))
             return false;
         else {
-            BaseSimple that = (BaseSimple) obj;
+            BaseValue that = (BaseValue) obj;
             return value != null ? value.equals(that.value) : that.value == null;
         }
     }
 
-    public Object getRmValue() {
+    /*public Object getRmValue() {
+        //TODO: пока только для примитивных
         return MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), value);
-    }
+    }*/
 
     @Override
     public int hashCode() {
@@ -103,13 +112,16 @@ public class BaseSimple implements BaseType {
     }
 
     @Override
-    public BaseSimple clone() {
+    public BaseValue clone() {
         return null;
     }
 
     @Override
     public String toString() {
+        if (value == null)
             return null;
+
+        return value.toString();
     }
 
 }

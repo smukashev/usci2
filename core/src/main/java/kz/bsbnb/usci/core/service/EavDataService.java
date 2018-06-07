@@ -1,6 +1,6 @@
 package kz.bsbnb.usci.core.service;
 
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseEntity;
 
 /**
  * @author BSB

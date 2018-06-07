@@ -4,8 +4,10 @@ import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class MetaClass extends Persistable implements MetaType {
     private String className;
@@ -167,6 +169,10 @@ public class MetaClass extends Persistable implements MetaType {
         this.parentIsKey = parentIsKey;
     }
 
+    public Set<String> getAttributeNames() {
+        return attributes.keySet();
+    }
+
     public MetaAttribute getMetaAttribute(String name) {
         return attributes.get(name);
     }
@@ -196,8 +202,35 @@ public class MetaClass extends Persistable implements MetaType {
         return result;
     }
 
+    @Override
     public String toString() {
-        return null;
+        return toString("");
+    }
+
+    @Override
+    public String toString(String prefix) {
+        //TODO: добавить поддержку complexKeyType
+        String str = className + ":metaClass(" + getId() + "_" + searchable + "_" /*+ complexKeyType + ");"*/;
+
+        String[] names;
+
+        names = attributes.keySet().toArray(new String[attributes.keySet().size()]);
+
+        Arrays.sort(names);
+
+        for (String memberName : names) {
+            MetaAttribute attribute = attributes.get(memberName);
+            MetaType type = attribute.getMetaType();
+
+            String key = "";
+
+            if (attribute.isKey()) key = "*";
+
+            str += "\n" + prefix + memberName + "(" + attribute.getId() + ")" + key + ": " +
+                    type.toString(prefix + "\t");
+        }
+
+        return str;
     }
 
 }

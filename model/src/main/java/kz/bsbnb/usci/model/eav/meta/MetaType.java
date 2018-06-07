@@ -1,6 +1,10 @@
 package kz.bsbnb.usci.model.eav.meta;
 
-public interface MetaType {
+import java.io.Serializable;
+
+public interface MetaType extends Serializable {
+
+    String toString(String prefix);
 
     boolean isSet();
 

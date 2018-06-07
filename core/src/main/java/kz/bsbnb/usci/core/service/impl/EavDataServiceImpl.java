@@ -1,7 +1,7 @@
 package kz.bsbnb.usci.core.service.impl;
 
 import kz.bsbnb.usci.core.service.EavDataService;
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;

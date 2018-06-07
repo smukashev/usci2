@@ -1,9 +1,11 @@
 package kz.bsbnb.usci.core.service;
 
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseEntity;
+
+import java.sql.SQLException;
 
 public interface EavXmlService {
 
-    void process(BaseEntity saving);
+    BaseEntity process(BaseEntity saving) throws SQLException;
 
 }

@@ -1,8 +1,11 @@
 package kz.bsbnb.usci.core.factory;
 
 import kz.bsbnb.usci.core.repository.MetaClassRepository;
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseEntity;
+import kz.bsbnb.usci.model.eav.base.BaseSet;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 /**
  * @author BSB
@@ -16,10 +19,14 @@ public class EavDataFactory {
         this.metaClassRepository = metaClassRepository;
     }
 
-    public BaseEntity createBaseEntity(String metaClassName) {
-        BaseEntity baseEntity = new BaseEntity();
-        baseEntity.setMetaClass(metaClassRepository.getMetaClass(metaClassName));
-        return baseEntity;
+    //это пока черновой вариант
+    public BaseEntity createBaseEntity(String metaClassName, LocalDate reportDate, Long respondentId, Long batchId) {
+        return new BaseEntity(metaClassRepository.getMetaClass(metaClassName), reportDate, respondentId, batchId);
+    }
+
+    //это пока черновой вариант
+    public BaseSet createBaseSet(String metaClassName) {
+        return new BaseSet(metaClassRepository.getMetaClass(metaClassName));
     }
 
 

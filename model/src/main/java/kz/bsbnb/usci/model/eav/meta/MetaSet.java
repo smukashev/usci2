@@ -4,7 +4,7 @@ import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 
 public class MetaSet extends Persistable implements MetaType {
-    MetaType metaType;
+    private MetaType metaType;
 
     public MetaSet() {
         /*An empty constructor*/
@@ -36,7 +36,20 @@ public class MetaSet extends Persistable implements MetaType {
 
     @Override
     public String toString() {
-        return null;
+        return toString("");
+    }
+
+    @Override
+    public String toString(String prefix) {
+        if (isComplex()) {
+            String str = "metaSet(" + getId() + ")[";
+
+            str += "], " + metaType.toString(prefix);
+
+            return str;
+        } else {
+            return "metaSet(" + getId() + "), " + metaType.toString(prefix);
+        }
     }
     
     @Override

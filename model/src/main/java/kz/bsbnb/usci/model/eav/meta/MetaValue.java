@@ -50,7 +50,12 @@ public class MetaValue implements MetaType {
 
     @Override
     public String toString() {
-        return null;
+        return toString("");
+    }
+
+    @Override
+    public String toString(String prefix) {
+        return "metaValue: " + metaDataType;
     }
 
 }

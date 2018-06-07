@@ -75,7 +75,7 @@ public class MetaClassDaoImpl implements MetaClassDao {
             params.addValue("id", metaClass.getId());
         }
 
-        npJdbcTemplate.queryForObject(query, params, new MetaClassMapper(metaClass));
+        metaClass = npJdbcTemplate.queryForObject(query, params, new MetaClassMapper(metaClass));
 
         loadAttributes(metaClass);
     }

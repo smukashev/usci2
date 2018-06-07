@@ -1,4 +1,4 @@
-package kz.bsbnb.usci.model.eav.data;
+package kz.bsbnb.usci.model.eav.base;
 
 public enum OperType {
     NEW(1),

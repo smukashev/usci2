@@ -1,94 +1,165 @@
 package kz.bsbnb.usci.core.service.impl;
 
-import kz.bsbnb.usci.core.service.EavDataService;
 import kz.bsbnb.usci.core.service.EavXmlService;
-import kz.bsbnb.usci.model.eav.data.BaseEntity;
-import kz.bsbnb.usci.model.eav.data.BaseSet;
-import kz.bsbnb.usci.model.eav.data.BaseSimple;
-import kz.bsbnb.usci.model.eav.data.BaseType;
-import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
-import kz.bsbnb.usci.model.eav.meta.MetaType;
+import kz.bsbnb.usci.model.Errors;
+import kz.bsbnb.usci.model.eav.base.*;
+import kz.bsbnb.usci.model.eav.meta.*;
 import kz.bsbnb.usci.util.Converter;
+import oracle.jdbc.driver.OracleConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class EavXmlServiceImpl implements EavXmlService {
-    private static final Logger logger = LoggerFactory.getLogger(EavDataService.class);
-    private final NamedParameterJdbcTemplate npJdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(EavXmlServiceImpl.class);
 
-    public EavXmlServiceImpl(NamedParameterJdbcTemplate npJdbcTemplate) {
+    private final NamedParameterJdbcTemplate npJdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public EavXmlServiceImpl(NamedParameterJdbcTemplate npJdbcTemplate, JdbcTemplate jdbcTemplate) {
         this.npJdbcTemplate = npJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    //TODO: желательно чтобы эта переменная была final
-    public void process(BaseEntity saving) {
+    @Transactional
+    public BaseEntity process(final BaseEntity baseEntitySaving) throws SQLException {
         logger.info("eav_xml: processing entity");
 
-        //TODO:
+        //TODO: необходимо создавать baseEntityApplied
+        //TODO: необходимо добавить комментарий по алгоритму
 
-        insEavDataEntityToDb(saving);
+        // TODO: старый коммент Пропускает закрытые теги на новые сущности <tag/>
+        for (String attributeName: baseEntitySaving.getAttributes()) {
+            MetaAttribute metaAttribute = baseEntitySaving.getMetaAttribute(attributeName);
+            MetaType metaType = metaAttribute.getMetaType();
+            BaseValue baseValue = baseEntitySaving.getBaseValue(attributeName);
+
+            if (baseValue != null && baseValue.getValue() != null && metaType.isComplex() && !metaAttribute.isImmutable())
+                processBaseValue(metaAttribute, baseValue);
+        }
+
+        applyBaseEntityToDb(baseEntitySaving);
+
+        return baseEntitySaving;
     }
 
-    private void insEavDataEntityToDb(BaseEntity baseEntity) {
+    private void processBaseValue(MetaAttribute metaAttribute, final BaseValue baseValueSaving) throws SQLException {
+        /*MetaAttribute metaAttribute = baseValueSaving.getMetaAttribute();
+        if (metaAttribute == null)
+            throw new IllegalStateException(Errors.compose(Errors.E60));*/
+
+        BaseContainer baseContainer = baseValueSaving.getBaseContainer();
+        if (baseContainer != null && !(baseContainer instanceof BaseEntity))
+            throw new IllegalStateException(Errors.compose(Errors.E59, metaAttribute.getName()));
+
+        MetaType metaType = metaAttribute.getMetaType();
+
+        if (!metaType.isComplex())
+            throw new IllegalArgumentException("Данный метод обрабатывает только комплексные атрибуты");
+
+        if (metaType.isSet()) {
+            BaseSet childBaseSet = (BaseSet) baseValueSaving.getValue();
+
+            for (BaseValue childBaseValue : childBaseSet.getValues())
+                process((BaseEntity) childBaseValue.getValue());
+        }
+        else
+            process((BaseEntity) baseValueSaving.getValue());
+    }
+
+    // подготовительные работы перед обработкой сущности:
+    // присваиваем id всем найденным сущностям
+    // TODO:
+    public void prepare(final BaseEntity baseEntity) {
+        //TODO:
+    }
+
+    private void applyBaseEntityToDb(final BaseEntity baseEntity) throws SQLException {
+        if (baseEntity.getId() != 0)
+            throw new IllegalArgumentException("Метод обрабатывает только новые сущности");
+
+        MetaClass metaClass = baseEntity.getMetaClass();
+
+        //TODO: брать сиквенс из мета классов
+        Long newId = jdbcTemplate.queryForObject("select EAV_DATA.SEQ_EAV_BE_ENTITIES.NEXTVAL from dual", Long.class);
+        baseEntity.setId(newId);
+
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(npJdbcTemplate.getJdbcTemplate());
-        simpleJdbcInsert.setSchemaName(baseEntity.getMetaClass().getSchemaXml());
-        simpleJdbcInsert.setTableName(baseEntity.getMetaClass().getTableName());
+        simpleJdbcInsert.setSchemaName(metaClass.getSchemaXml());
+        simpleJdbcInsert.setTableName(metaClass.getTableName());
+
+        // обязательные поля в реляционной таблице: entityId, creditorId, reportDate, batchId
+        Set<String> columns = new HashSet<>(Arrays.asList("ENTITY_ID", "CREDITOR_ID", "REPORT_DATE", "BATCH_ID"));
+        columns.addAll(baseEntity.getAttributes().stream()
+                .map(attributeName -> baseEntity.getMetaAttribute(attributeName).getColumnName())
+                .collect(Collectors.toList()));
 
         MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("BATCH_ID", baseEntity.getBatchId());
+        params.addValue("ENTITY_ID", baseEntity.getId());
+        params.addValue("CREDITOR_ID", baseEntity.getRespondentId());
+        params.addValue("REPORT_DATE", Converter.convertToSqlDate(baseEntity.getReportDate()));
 
-        // обязательные поля в любой таблице
-        List<String> columns = new ArrayList<>(Arrays.asList("entity_id", "creditor_id", "report_date"));
+        for (String attributeName: baseEntity.getAttributes()) {
+            BaseValue baseValue = baseEntity.getBaseValue(attributeName);
+            MetaAttribute metaAttribute = baseEntity.getMetaAttribute(attributeName);
 
-        params.addValue("entity_id", baseEntity.getId());
-        params.addValue("creditor_id", baseEntity.getRespondentId());
-        params.addValue("report_date", Converter.convertToSqlDate(baseEntity.getReportDate()));
+            Object sqlValue = convertBaseValueToRmValue(metaAttribute, baseValue);
+            params.addValue(metaAttribute.getColumnName(), sqlValue);
+        }
 
-        baseEntity.getValues().forEach((attributeName, baseValue) -> {
-            MetaAttribute metaAttribute = baseValue.getMetaAttribute();
-
-            columns.add(metaAttribute.getColumnName());
-
-            params.addValue(metaAttribute.getColumnName(), convertEavDataToRmValue(baseValue));
-        });
-
-        simpleJdbcInsert.setColumnNames(columns);
+        simpleJdbcInsert.setColumnNames(new ArrayList<>(columns));
 
         int count = simpleJdbcInsert.execute(params);
         if (count == 0)
-            throw new IllegalArgumentException("Ошибка завершения DML операций");
+            throw new IllegalArgumentException("Ошибка завершения DML операций по таблице " + String.join(".", metaClass.getSchemaXml(), metaClass.getTableName()));
     }
 
     // конвертирует EAV значение в значение реляционной таблицы
-    // для комплексных сетов берем только id сущностей, конвертируем коллекцию в set дабы не было дубликатов далее обратно конвертируем в обычный массив
+    // для комплексных сетов берем только id сущностей, конвертируем коллекцию конвертируем в обычный массив
     // для обычных сетов берем массив значений
     // для скалярных сущностей берем только id самой сущности
     // для скалярных примитивных значений берем само значение
-    private Object convertEavDataToRmValue(BaseType baseType) {
-        MetaType metaType = baseType.getMetaAttribute().getMetaType();
+    private Object convertBaseValueToRmValue(MetaAttribute metaAttribute, BaseValue baseValue) throws SQLException {
+        MetaType metaType = metaAttribute.getMetaType();
+//        if (baseType.getBaseContainer() == null)
+//            throw new IllegalArgumentException("Нельзя отправлять корневой узел дерева");
 
         Object value;
         if (metaType.isSet()) {
-            BaseSet baseSet = (BaseSet) baseType;
-            if (baseType.isComplex())
-                value = new ArrayList<>(baseSet.getValues().stream().map(ed -> ((BaseEntity) ed).getId()).collect(Collectors.toSet()));
+            Object array;
+            BaseSet baseSet = (BaseSet) baseValue.getValue();
+            if (metaType.isComplex())
+                array = new ArrayList<>(baseSet.getValues().stream()
+                        .map(ed -> ((BaseEntity) ed.getValue()).getId())
+                        .collect(Collectors.toSet())).toArray();
             else
-                value = new ArrayList<>(baseSet.getValues().stream().map(ed -> ((BaseSimple)ed).getValue()).collect(Collectors.toSet()));
+                array = new ArrayList<>(baseSet.getValues().stream()
+                        .map(ed -> ((BaseValue)ed.getValue()).getValue())
+                        .collect(Collectors.toSet())).toArray();
+
+            Connection conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
+            OracleConnection oraConn = conn.unwrap(OracleConnection.class);
+
+            value = oraConn.createARRAY(String.join(".", "EAV_XML", metaAttribute.getColumnType()), array);
         }
         else if (metaType.isComplex())
-            value = ((BaseEntity) baseType).getId();
+            value = ((BaseEntity) baseValue.getValue()).getId();
         else
-            value = ((BaseSimple) baseType).getRmValue();
+            value = MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), baseValue.getValue());
 
         return value;
     }
