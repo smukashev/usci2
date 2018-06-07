@@ -1,15 +1,20 @@
 package kz.bsbnb.usci.model.eav.base;
 
-
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaClass;
 import kz.bsbnb.usci.model.eav.meta.MetaSet;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * @author BSB
+ */
+
 public class BaseEntityOutput {
+    private static final Logger logger = LoggerFactory.getLogger(BaseEntityOutput.class);
 
     public static String toString(BaseEntity entity) {
         return toString(entity, "");
@@ -23,12 +28,11 @@ public class BaseEntityOutput {
             str += entity.getReportDate() == null ? "-)" : formatDate(entity.getReportDate()) + ");";
         } catch (Exception e) {
             if (entity.getMetaClass().getClassName().equals("credit")) {
-                //TODO: добавить getEl метод в BaseEntity
-                //System.out.println(entity.getEl("primary_contract.no"));
-                //System.out.println(entity.getEl("primary_contract.date"));
+                logger.info(String.valueOf(entity.getEl("primary_contract.no")));
+                logger.info(String.valueOf(entity.getEl("primary_contract.date")));
             }
-            System.out.println(entity);
-            System.out.println(entity.getReportDate());
+            logger.info(String.valueOf(entity));
+            logger.info(String.valueOf(entity.getReportDate()));
             throw e;
         }
 

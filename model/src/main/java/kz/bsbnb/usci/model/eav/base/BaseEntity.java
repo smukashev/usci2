@@ -15,7 +15,6 @@ public class BaseEntity extends Persistable implements BaseContainer {
     private UUID uuid = UUID.randomUUID();
     private MetaClass metaClass;
     private LocalDate reportDate;
-    private BaseContainer baseContainer;
     private Long respondentId;
     private Long batchId;
     private OperType operType;
@@ -62,9 +61,9 @@ public class BaseEntity extends Persistable implements BaseContainer {
 
     public void put(final String attribute, BaseValue baseValue) {
         MetaAttribute metaAttribute = metaClass.getMetaAttribute(attribute);
-        MetaType type = metaAttribute.getMetaType();
+        MetaType metaType = metaAttribute.getMetaType();
 
-        if (type == null)
+        if (metaType == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E25,attribute, metaClass.getClassName()));
 
         if (baseValue == null)
@@ -74,17 +73,17 @@ public class BaseEntity extends Persistable implements BaseContainer {
         Class<?> expValueClass;
 
         if (baseValue.getValue() != null) {
-            if (type.isComplex())
-                if (type.isSet())
+            if (metaType.isComplex())
+                if (metaType.isSet())
                     expValueClass = BaseSet.class;
                 else
                     expValueClass = BaseEntity.class;
             else {
-                if (type.isSet()) {
+                if (metaType.isSet()) {
                     expValueClass = BaseSet.class;
                     valueClass = baseValue.getClass();
                 } else {
-                    MetaValue metaValue = (MetaValue) type;
+                    MetaValue metaValue = (MetaValue) metaType;
                     expValueClass = metaValue.getMetaDataType().getDataTypeClass();
                 }
             }
@@ -132,6 +131,104 @@ public class BaseEntity extends Persistable implements BaseContainer {
         }
     }
 
+    public Object getEl(String path) {
+        if (path.equals("ROOT"))
+            return getId();
+
+        StringTokenizer tokenizer = new StringTokenizer(path, ".");
+
+        BaseEntity entity = this;
+        MetaClass theMeta = metaClass;
+        Object valueOut = null;
+
+        while (tokenizer.hasMoreTokens()) {
+            String token = tokenizer.nextToken();
+            String arrayIndexes = null;
+
+            if (token.contains("[")) {
+                arrayIndexes = token.substring(token.indexOf("[") + 1, token.length() - 1);
+                token = token.substring(0, token.indexOf("["));
+            }
+
+            MetaAttribute attribute = theMeta.getMetaAttribute(token);
+
+            MetaType type = null;
+            try {
+                type = attribute.getMetaType();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (entity == null)
+                return null;
+
+            BaseValue value = entity.getBaseValue(token);
+
+            if (value == null || value.getValue() == null) {
+                valueOut = null;
+                break;
+            }
+
+            valueOut = value.getValue();
+
+            if (type == null)
+                throw new IllegalStateException(Errors.compose(Errors.E46));
+
+            if (type.isSet()) {
+                if (arrayIndexes != null) {
+                    valueOut = ((BaseSet) valueOut).getEl(arrayIndexes.replaceAll("->", "."));
+                    type = ((MetaSet) type).getMetaType();
+                } else {
+                    return valueOut;
+                }
+            }
+
+            if (type.isComplex()) {
+                entity = (BaseEntity) valueOut;
+                theMeta = (MetaClass) type;
+            } else {
+                if (tokenizer.hasMoreTokens()) {
+                    throw new IllegalArgumentException(Errors.compose(Errors.E13));
+                }
+            }
+        }
+
+        return valueOut;
+    }
+
+    boolean equalsToString(HashMap<String, String> params) {
+        for (String fieldName : params.keySet()) {
+            String ownFieldName;
+            String innerPath = null;
+            if (fieldName.contains(".")) {
+                ownFieldName = fieldName.substring(0, fieldName.indexOf("."));
+                innerPath = fieldName.substring(fieldName.indexOf(".") + 1);
+            } else {
+                ownFieldName = fieldName;
+            }
+
+            MetaType mtype = metaClass.getAttributeType(ownFieldName);
+
+            if (mtype == null)
+                throw new IllegalArgumentException(Errors.compose(Errors.E9,fieldName));
+
+            if (mtype.isSet())
+                throw new IllegalArgumentException(Errors.compose(Errors.E10,fieldName));
+
+            BaseValue baseValue = getBaseValue(ownFieldName);
+
+            if (mtype.isComplex()) {
+                baseValue = ((BaseEntity) (baseValue.getValue())).getBaseValue(innerPath);
+                mtype = ((MetaClass) mtype).getAttributeType(innerPath);
+            }
+
+            if (!baseValue.equalsToString(params.get(fieldName), ((MetaValue) mtype).getMetaDataType()))
+                return false;
+        }
+
+        return true;
+    }
+
     @Override
     public Collection<BaseValue> getValues() {
         return values.values();
@@ -171,16 +268,6 @@ public class BaseEntity extends Persistable implements BaseContainer {
         return metaClass.getMetaAttribute(attribute);
     }
 
-    @Override
-    public BaseContainer getBaseContainer() {
-        return baseContainer;
-    }
-
-    @Override
-    public void setBaseContainer(BaseContainer baseContainer) {
-        this.baseContainer = baseContainer;
-    }
-
     public Long getRespondentId() {
         return respondentId;
     }
@@ -210,7 +297,12 @@ public class BaseEntity extends Persistable implements BaseContainer {
     public boolean isComplex() {
         return true;
     }
-    
+
+    @Override
+    public int getValueCount() {
+        return values.size();
+    }
+
 }
 
 

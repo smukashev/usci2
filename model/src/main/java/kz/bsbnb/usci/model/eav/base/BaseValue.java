@@ -1,11 +1,14 @@
 package kz.bsbnb.usci.model.eav.base;
 
+import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaDataType;
-import kz.bsbnb.usci.model.eav.meta.MetaType;
-import kz.bsbnb.usci.model.eav.meta.MetaValue;
 
-public class BaseValue implements BaseType {
+/**
+ * @author BSB
+ */
+
+public class BaseValue /*implements BaseType*/ {
     private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
@@ -27,16 +30,6 @@ public class BaseValue implements BaseType {
         this.baseContainer = baseContainer;
     }
 
-    /*@Override
-    public MetaAttribute getBaseAttribute() {
-        return metaAttribute;
-    }
-
-    @Override
-    public void setBaseAttribute(MetaAttribute metaAttribute) {
-        this.metaAttribute = metaAttribute;
-    }*/
-
     public Object getValue() {
         return value;
     }
@@ -53,34 +46,12 @@ public class BaseValue implements BaseType {
         return newValue;
     }
 
-    /*@Override
-    public void setMetaType(MetaType metaType) {
-
-    }*/
-
     public MetaAttribute getMetaAttribute() {
         return metaAttribute;
     }
 
-    public void setMetaAttribute(MetaAttribute baseAttribute) {
+    public void setMetaAttribute(MetaAttribute metaAttribute) {
         this.metaAttribute = metaAttribute;
-    }
-
-    @Override
-    public MetaType getMetaType() {
-        return metaAttribute.getMetaType();
-    }
-
-    @Override
-    public boolean isSet() {
-        //TODO: необходимо удалить
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isComplex() {
-        //TODO: необходимо удалить
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -99,10 +70,32 @@ public class BaseValue implements BaseType {
         }
     }
 
-    /*public Object getRmValue() {
-        //TODO: пока только для примитивных
-        return MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), value);
-    }*/
+    public boolean equalsToString(String str, MetaDataType type) {
+        switch (type) {
+            case INTEGER:
+                if (value.equals(Integer.parseInt(str)))
+                    return true;
+                break;
+            case DATE:
+                throw new UnsupportedOperationException(Errors.compose(Errors.E41));
+            case STRING:
+                if (value.equals(str))
+                    return true;
+                break;
+            case BOOLEAN:
+                if (value.equals(Boolean.parseBoolean(str)))
+                    return true;
+                break;
+            case DOUBLE:
+                if (value.equals(Double.parseDouble(str)))
+                    return true;
+                break;
+            default:
+                throw new IllegalStateException(Errors.compose(Errors.E7, type));
+        }
+
+        return false;
+    }
 
     @Override
     public int hashCode() {
@@ -113,7 +106,8 @@ public class BaseValue implements BaseType {
 
     @Override
     public BaseValue clone() {
-        return null;
+        //TODO: реализовать если есть необходимость или удалить
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override

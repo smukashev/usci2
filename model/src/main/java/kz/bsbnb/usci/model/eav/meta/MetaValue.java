@@ -1,5 +1,9 @@
 package kz.bsbnb.usci.model.eav.meta;
 
+/**
+ * @author BSB
+ */
+
 public class MetaValue implements MetaType {
     private MetaDataType metaDataType;
 

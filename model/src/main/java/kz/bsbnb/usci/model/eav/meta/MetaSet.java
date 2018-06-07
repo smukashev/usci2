@@ -3,6 +3,10 @@ package kz.bsbnb.usci.model.eav.meta;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 
+/**
+ * @author BSB
+ */
+
 public class MetaSet extends Persistable implements MetaType {
     private MetaType metaType;
 

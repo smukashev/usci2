@@ -9,6 +9,10 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 
+/**
+ * @author BSB
+ */
+
 public enum MetaDataType {
     INTEGER,
     DATE,
@@ -57,8 +61,8 @@ public enum MetaDataType {
     }
 
     // конвертация переменной примитивного типа в тип реляционной модели
-    // Boolean значения конвертируются в Varchar2(1)
-    // LocalDate конвертируется в Sql.Date
+    // Boolean значения конвертируются в varchar2(1)
+    // LocalDate конвертируется в sql.date
     // остальные значения остаются как есть
     public static Object convertToRmValue(MetaDataType metaDataType, Object value) {
         if (metaDataType == MetaDataType.DATE)

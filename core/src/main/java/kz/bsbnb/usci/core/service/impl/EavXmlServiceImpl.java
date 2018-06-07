@@ -57,9 +57,8 @@ public class EavXmlServiceImpl implements EavXmlService {
     }
 
     private void processBaseValue(MetaAttribute metaAttribute, final BaseValue baseValueSaving) throws SQLException {
-        /*MetaAttribute metaAttribute = baseValueSaving.getMetaAttribute();
         if (metaAttribute == null)
-            throw new IllegalStateException(Errors.compose(Errors.E60));*/
+            throw new IllegalStateException(Errors.compose(Errors.E60));
 
         BaseContainer baseContainer = baseValueSaving.getBaseContainer();
         if (baseContainer != null && !(baseContainer instanceof BaseEntity))
@@ -87,6 +86,10 @@ public class EavXmlServiceImpl implements EavXmlService {
         //TODO:
     }
 
+    //TODO: в будущем сделать метод общим для eavXmlService, eavDataService
+    // инсерт сущности в базу => одна сущность = одна запись в базе
+    // наименование таблицы и столбцов берем из мета данных
+    // также не забываем что в любой таблице есть обязательные поля (см. код) помимо атрибутов мета класса
     private void applyBaseEntityToDb(final BaseEntity baseEntity) throws SQLException {
         if (baseEntity.getId() != 0)
             throw new IllegalArgumentException("Метод обрабатывает только новые сущности");
@@ -135,8 +138,6 @@ public class EavXmlServiceImpl implements EavXmlService {
     // для скалярных примитивных значений берем само значение
     private Object convertBaseValueToRmValue(MetaAttribute metaAttribute, BaseValue baseValue) throws SQLException {
         MetaType metaType = metaAttribute.getMetaType();
-//        if (baseType.getBaseContainer() == null)
-//            throw new IllegalArgumentException("Нельзя отправлять корневой узел дерева");
 
         Object value;
         if (metaType.isSet()) {
@@ -151,6 +152,8 @@ public class EavXmlServiceImpl implements EavXmlService {
                         .map(ed -> ((BaseValue)ed.getValue()).getValue())
                         .collect(Collectors.toSet())).toArray();
 
+            // особенность Oracle, для создания массива обязательно пользоваться createARRAY а не createArrayOf
+            // также необходимо получить соединение с базой spring утилитой иначе получим только прокси обьект
             Connection conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
             OracleConnection oraConn = conn.unwrap(OracleConnection.class);
 

@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author BSB
+ */
+
 public class MetaClass extends Persistable implements MetaType {
     private String className;
     private String classTitle;

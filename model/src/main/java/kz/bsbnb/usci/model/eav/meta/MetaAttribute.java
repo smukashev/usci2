@@ -2,6 +2,10 @@ package kz.bsbnb.usci.model.eav.meta;
 
 import kz.bsbnb.usci.model.Persistable;
 
+/**
+ * @author BSB
+ */
+
 public class MetaAttribute extends Persistable {
     private String name;
     private String title;

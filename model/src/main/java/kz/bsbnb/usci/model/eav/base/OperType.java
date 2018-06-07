@@ -1,5 +1,9 @@
 package kz.bsbnb.usci.model.eav.base;
 
+/**
+ * @author BSB
+ */
+
 public enum OperType {
     NEW(1),
     DELETE(2),

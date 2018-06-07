@@ -1,12 +1,15 @@
 package kz.bsbnb.usci.model.eav.base;
 
-import java.util.HashSet;
+import java.util.*;
 
-import java.util.Set;
-import java.util.UUID;
-
+import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
+import kz.bsbnb.usci.model.eav.meta.MetaValue;
+
+/**
+ * @author BSB
+ */
 
 public class BaseSet implements BaseContainer {
     private UUID uuid = UUID.randomUUID();
@@ -47,12 +50,12 @@ public class BaseSet implements BaseContainer {
         StringBuilder sb = new StringBuilder("[");
         boolean first = true;
 
-        for (BaseType value : values) {
+        for (BaseValue value : values) {
             if (first) {
-                sb.append(value.toString());
+                sb.append(value.getValue().toString());
                 first = false;
             } else {
-                sb.append(", ").append(value.toString());
+                sb.append(", ").append(value.getValue().toString());
             }
         }
 
@@ -86,29 +89,67 @@ public class BaseSet implements BaseContainer {
         return metaType.isComplex();
     }
 
-    /*@Override
-    public void setMetaType(MetaType metaType) {
-        this.metaType = metaType;
-    }*/
+    public Object getElSimple(String filter) {
+        if (metaType.isComplex() || metaType.isSet()) {
+            throw new IllegalArgumentException(Errors.compose(Errors.E35));
+        }
 
-    /*@Override
-    public void setBaseAttribute(MetaAttribute metaAttribute) {
-        this.metaAttribute = metaAttribute;
+        for (BaseValue value : values) {
+            Object innerValue = value.getValue();
+            if (innerValue == null)
+                continue;
+
+            if (value.equalsToString(filter, ((MetaValue) metaType).getMetaDataType()))
+                return innerValue;
+        }
+
+        return null;
+    }
+
+    public Object getElComplex(String filter) {
+        if (!metaType.isComplex() || metaType.isSet())
+            throw new IllegalArgumentException(Errors.compose(Errors.E33));
+
+        StringTokenizer tokenizer = new StringTokenizer(filter, ",");
+
+        Object valueOut = null;
+        HashMap<String, String> params = new HashMap<>();
+
+        while (tokenizer.hasMoreTokens()) {
+            String token = tokenizer.nextToken();
+
+            StringTokenizer innerTokenizer = new StringTokenizer(token, "=");
+
+            String fieldName = innerTokenizer.nextToken().trim();
+            if (!innerTokenizer.hasMoreTokens())
+                throw new IllegalStateException(Errors.compose(Errors.E34));
+
+            String fieldValue = innerTokenizer.nextToken().trim();
+
+            params.put(fieldName, fieldValue);
+        }
+
+        for (BaseValue value : values) {
+            Object innerValue = value.getValue();
+            if (innerValue == null)
+                continue;
+
+            if (((BaseEntity) innerValue).equalsToString(params))
+                return innerValue;
+        }
+
+        return valueOut;
+    }
+
+    public Object getEl(String filter) {
+        if (metaType.isComplex())
+            return getElComplex(filter);
+        return getElSimple(filter);
     }
 
     @Override
-    public MetaAttribute getBaseAttribute() {
-        return metaAttribute;
-    }*/
-
-    @Override
-    public BaseContainer getBaseContainer() {
-        return baseContainer;
-    }
-
-    @Override
-    public void setBaseContainer(BaseContainer baseContainer) {
-        this.baseContainer = baseContainer;
+    public int getValueCount() {
+        return values.size();
     }
 
 }
