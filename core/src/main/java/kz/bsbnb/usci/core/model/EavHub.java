@@ -1,17 +1,16 @@
-package trash;
+package kz.bsbnb.usci.core.model;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 public class EavHub implements Serializable {
     private Long respondentId;
     private String entityKey;
     private Long metaClassId;
     private Long entityId;
-    private LocalDateTime systemDate;
-    private Boolean deleted = Boolean.FALSE;
+    private Long batchId;
 
     //region Getters and Setters
+
     public Long getRespondentId() {
         return respondentId;
     }
@@ -44,21 +43,14 @@ public class EavHub implements Serializable {
         this.entityId = entityId;
     }
 
-    public LocalDateTime getSystemDate() {
-        return systemDate;
+    public Long getBatchId() {
+        return batchId;
     }
 
-    public void setSystemDate(LocalDateTime systemDate) {
-        this.systemDate = systemDate;
+    public void setBatchId(Long batchId) {
+        this.batchId = batchId;
     }
 
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
 
     //endregion
 
