@@ -1,0 +1,16 @@
+group = 'kz.bsbnb.usci'
+version = '0.1.0'
+
+bootJar {
+    baseName = 'receiver'
+}
+
+dependencies {
+    compile project(':model')
+    compile("org.springframework.boot:spring-boot-starter")
+    compile group: 'org.apache.commons', name: 'commons-compress', version: '1.16.1'
+}
+
+springBoot {
+    mainClassName = 'kz.bsbnb.usci.receiver.Main'
+}

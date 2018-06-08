@@ -1,4 +1,4 @@
-package kz.bsbnb.usci.reciver;
+package kz.bsbnb.usci.receiver;
 
 import kz.bsbnb.usci.model.Batch;
 import kz.bsbnb.usci.model.reciver.LoadManagerConfig;
