@@ -110,13 +110,11 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         try {
             MetaClass metaClass = baseEntity.getMetaClass();
 
-            // присваиваю поля которые есть у любой сущности
             baseEntity.setId(Converter.convertToLong(values.get("ENTITY_ID")));
             baseEntity.setReportDate(Converter.convertToLocalDate((java.sql.Timestamp) values.get("REPORT_DATE")));
             baseEntity.setBatchId(Converter.convertToLong(values.get("BATCH_ID")));
             baseEntity.setRespondentId(Converter.convertToLong(values.get("CREDITOR_ID")));
 
-            // сканирую каждый атрибут мета класса сущности чтобы присвоить значения
             for (MetaAttribute attribute : metaClass.getAttributes()) {
                 MetaType metaType = attribute.getMetaType();
 
