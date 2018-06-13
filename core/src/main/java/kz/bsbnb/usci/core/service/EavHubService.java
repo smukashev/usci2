@@ -7,6 +7,8 @@ public interface EavHubService {
 
     Long insert(EavHub eavHub);
 
+    BaseEntity insert(BaseEntity baseEntity);
+
     Long find(BaseEntity baseEntity);
 
     String getKeyString(BaseEntity baseEntity);

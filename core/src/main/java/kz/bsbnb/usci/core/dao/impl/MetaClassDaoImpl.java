@@ -48,7 +48,7 @@ public class MetaClassDaoImpl implements MetaClassDao {
 
     @Override
     public MetaClass load(Long id) {
-        if (id < 1)
+        if (id == null)
             return null;
 
         MetaClass meta = new MetaClass();
@@ -64,7 +64,7 @@ public class MetaClassDaoImpl implements MetaClassDao {
         String query;
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        if (metaClass.getId() < 1) {
+        if (metaClass.getId() == null) {
             if (metaClass.getClassName() == null)
                 throw new IllegalArgumentException(Errors.compose(Errors.E162));
 
@@ -81,7 +81,7 @@ public class MetaClassDaoImpl implements MetaClassDao {
     }
 
     private void loadAttributes(MetaClass meta) {
-        if (meta.getId() < 1)
+        if (meta.getId() == null)
             throw new IllegalStateException(Errors.compose(Errors.E164));
 
         meta.removeAttributes();

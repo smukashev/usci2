@@ -11,15 +11,20 @@ import kz.bsbnb.usci.model.eav.meta.MetaValue;
  * @author BSB
  */
 
-public class BaseSet implements BaseContainer {
+public class BaseSet implements BaseContainer, Cloneable {
     private UUID uuid = UUID.randomUUID();
-
-    private BaseContainer baseContainer;
     private MetaType metaType;
-    private Set<BaseValue> values = new HashSet<>();
+
+    // использование HashMap вместе HashSet сделано преднамеренно
+    // необходимо допускать дублирование записей в коллекцию во время парсинга,
+    // и затем выявлять дубликаты через бизнес правила
+    // иначе бы HashSet перетирал дубликаты и в коллекций оставались бы только уникальные записи
+    // в качестве ключей HashMap служат UUID которые генерируют уникальные значения
+    // обычные массивы тоже можно было использовать, но ключи HashMap можно зайдествовать в коде
+    private Map<String, BaseValue> values = new HashMap<>();
 
     public BaseSet() {
-        /*An empty constructor*/
+        /*Пустой конструктор*/
     }
 
     public BaseSet(MetaType metaType) {
@@ -31,9 +36,31 @@ public class BaseSet implements BaseContainer {
         return metaType;
     }
 
-    public void put(BaseValue value) {
-        value.setBaseContainer(this);
-        values.add(value);
+    public void put(BaseValue baseValue) {
+        if (baseValue == null)
+            throw new IllegalArgumentException("Добавлять в сет пустое значение не допустимо");
+
+        baseValue.setBaseContainer(this);
+
+        UUID uuid = UUID.randomUUID();
+        put(uuid.toString(), baseValue);
+    }
+
+    private void put(String name, BaseValue baseValue) {
+        if (baseValue == null || baseValue.getValue() == null)
+            throw new IllegalArgumentException("Добавлять в множество пустое значение не допустимо");
+
+        if (name == null) {
+            UUID uuid = UUID.randomUUID();
+            put(uuid.toString(), baseValue);
+        }
+
+        if (baseValue.getValue() instanceof BaseSet)
+            throw new UnsupportedOperationException("Не правильное значение множества");
+
+        baseValue.setBaseContainer(this);
+
+        values.put(name, baseValue);
     }
 
     public void remove(BaseValue value) {
@@ -41,8 +68,8 @@ public class BaseSet implements BaseContainer {
     }
 
     @Override
-    public Set<BaseValue> getValues() {
-        return values;
+    public Collection<BaseValue> getValues() {
+        return values.values();
     }
 
     @Override
@@ -50,7 +77,7 @@ public class BaseSet implements BaseContainer {
         StringBuilder sb = new StringBuilder("[");
         boolean first = true;
 
-        for (BaseValue value : values) {
+        for (BaseValue value : values.values()) {
             if (first) {
                 sb.append(value.getValue().toString());
                 first = false;
@@ -76,7 +103,25 @@ public class BaseSet implements BaseContainer {
 
     @Override
     public BaseSet clone() {
-        return null;
+        BaseSet baseSetCloned;
+        try {
+            baseSetCloned = (BaseSet) super.clone();
+
+            HashMap<String, BaseValue> valuesCloned = new HashMap<>();
+
+            for (String attribute : values.keySet()) {
+                BaseValue baseValue = values.get(attribute);
+                BaseValue baseValueCloned = baseValue.clone();
+                baseValueCloned.setBaseContainer(baseSetCloned);
+                valuesCloned.put(attribute, baseValueCloned);
+            }
+
+            baseSetCloned.values = valuesCloned;
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException(Errors.compose(Errors.E31));
+        }
+
+        return baseSetCloned;
     }
 
     @Override
@@ -94,7 +139,7 @@ public class BaseSet implements BaseContainer {
             throw new IllegalArgumentException(Errors.compose(Errors.E35));
         }
 
-        for (BaseValue value : values) {
+        for (BaseValue value : values.values()) {
             Object innerValue = value.getValue();
             if (innerValue == null)
                 continue;
@@ -129,7 +174,7 @@ public class BaseSet implements BaseContainer {
             params.put(fieldName, fieldValue);
         }
 
-        for (BaseValue value : values) {
+        for (BaseValue value : values.values()) {
             Object innerValue = value.getValue();
             if (innerValue == null)
                 continue;

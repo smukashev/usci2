@@ -341,7 +341,7 @@ public enum Errors {
 
 
     public static String compose(Errors error, Object... params) {
-        String message = String.valueOf(error);
+        String message = String.valueOf(getError(error));
         for (Object obj : params) {
 
             if (obj instanceof Date) {

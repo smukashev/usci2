@@ -4,20 +4,17 @@ import kz.bsbnb.usci.core.dao.EavHubDao;
 import kz.bsbnb.usci.core.model.EavHub;
 import kz.bsbnb.usci.core.service.EavHubService;
 import kz.bsbnb.usci.model.Errors;
-import kz.bsbnb.usci.model.Persistable;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseValue;
 import kz.bsbnb.usci.model.eav.meta.*;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author BSB
@@ -36,8 +33,6 @@ public class EavHubServiceImpl implements EavHubService {
     //TODO: добавить поддержку parentIsKey
     public String getKeyString(BaseEntity baseEntity) {
         MetaClass metaClass = baseEntity.getMetaClass();
-        if (metaClass == null)
-            throw new IllegalArgumentException(Errors.compose(Errors.E176));
 
         //TODO: добавить ошибку в Errors
         if (!metaClass.isSearchable())
@@ -45,68 +40,90 @@ public class EavHubServiceImpl implements EavHubService {
 
         StringBuilder sb = new StringBuilder();
 
-        List<MetaAttribute> keyAttributes = baseEntity.getAttributes().stream()
-                .map(baseEntity::getMetaAttribute)
-                .filter(MetaAttribute::isKey)
-                .sorted((o1, o2) -> (int)(o2.getId() - o1.getId()))
-                .collect(Collectors.toList());
+        // получаем все ключевые атрибуты сущности
+        metaClass.getAttributes().stream()
+            .filter(MetaAttribute::isKey)
+            .sorted((o1, o2) -> (int)(o2.getId() - o1.getId()))
+            .forEach(metaAttribute -> {
+                MetaType metaType = metaAttribute.getMetaType();
 
-        for (MetaAttribute metaAttribute : keyAttributes) {
-            MetaType metaType = metaAttribute.getMetaType();
+                BaseValue baseValue = baseEntity.getBaseValue(metaAttribute.getName());
+                if (baseValue == null || baseValue.getValue() == null)
+                    throw new IllegalArgumentException(Errors.compose(Errors.E188));
 
-            if (!metaAttribute.isKey())
-                continue;
-
-            BaseValue baseValue = baseEntity.getBaseValue(metaAttribute.getName());
-            if (baseValue == null || baseValue.getValue() == null)
-                throw new IllegalArgumentException(Errors.compose(Errors.E188));
-
-            //TODO: пока не известно нужны ли сеты
-            //TODO: добавить ошибку в Errors
-            if (metaType.isSet())
-                throw new IllegalArgumentException("Сеты в качестве ключевых полей в EAV_HUB не поддерживатюся");
-
-            String key = null;
-
-            if (metaType.isComplex()) {
-                BaseEntity childBaseEntity = (BaseEntity) baseValue.getValue();
-
+                //TODO: пока не известно нужны ли сеты
                 //TODO: добавить ошибку в Errors
-                if (childBaseEntity.getId() == 0)
-                    throw new IllegalArgumentException("Ключевому поле сущности не присвоено id");
+                if (metaType.isSet())
+                    throw new IllegalArgumentException("Сеты в качестве ключевых полей в EAV_HUB не поддерживатюся");
 
-                key = String.valueOf(childBaseEntity.getId());
-            }
-            else {
-                MetaValue metaValue = (MetaValue)metaType;
-                MetaDataType metaDataType = metaValue.getMetaDataType();
-                if (metaDataType == MetaDataType.DOUBLE || metaDataType == MetaDataType.INTEGER || metaDataType == MetaDataType.BOOLEAN)
-                    throw new IllegalArgumentException(String.format("Типы данных %s не могут участвовать в ключе EAV_HUB", metaValue.getMetaDataType()));
-                else if (metaDataType == MetaDataType.DATE) {
-                    LocalDate date = (LocalDate) baseValue.getValue();
-                    key = date.format(HUB_KEY_DATE_FORMAT);
+                String key = null;
+
+                if (metaType.isComplex()) {
+                    BaseEntity childBaseEntity = (BaseEntity) baseValue.getValue();
+
+                    //TODO: добавить ошибку в Errors
+                    if (childBaseEntity.getId() == 0)
+                        throw new IllegalArgumentException("Ключевому поле сущности не присвоено id");
+
+                    key = String.valueOf(childBaseEntity.getId());
                 }
-                else if (metaDataType == MetaDataType.STRING)
-                    key = (String)baseValue.getValue();
-            }
+                else {
+                    MetaValue metaValue = (MetaValue)metaType;
+                    MetaDataType metaDataType = metaValue.getMetaDataType();
+                    if (metaDataType == MetaDataType.DOUBLE || metaDataType == MetaDataType.INTEGER || metaDataType == MetaDataType.BOOLEAN)
+                        throw new IllegalArgumentException(String.format("Типы данных %s не могут участвовать в ключе EAV_HUB", metaValue.getMetaDataType()));
+                    else if (metaDataType == MetaDataType.DATE) {
+                        LocalDate date = (LocalDate) baseValue.getValue();
+                        key = date.format(HUB_KEY_DATE_FORMAT);
+                    }
+                    else if (metaDataType == MetaDataType.STRING)
+                        key = (String)baseValue.getValue();
+                }
 
 
-            if (sb.length() > 0)
-                sb.append(Errors.SEPARATOR);
+                if (sb.length() > 0)
+                    sb.append(Errors.SEPARATOR);
 
-            sb.append(key);
-        }
+                sb.append(key);
+            });
 
         return sb.toString();
     }
 
     @Override
     public Long insert(EavHub eavHub) {
+        if (eavHub.getEntityId() == 0)
+            throw new IllegalArgumentException("id сущности для инсерта в EAV_HUB должна быть пустой");
+
         return eavHubDao.insert(eavHub);
     }
 
     @Override
+    public BaseEntity insert(BaseEntity baseEntity) {
+        Long id = eavHubDao.insert(new EavHub(baseEntity.getRespondentId(), getKeyString(baseEntity),
+                baseEntity.getMetaClass().getId(), baseEntity.getBatchId()));
+        baseEntity.setId(id);
+
+        return baseEntity;
+    }
+
+    @Override
     public Long find(BaseEntity baseEntity) {
+        Optional<MetaAttribute> nullComplexKey = baseEntity.getAttributes()
+            .filter(MetaAttribute::isKey)
+            .filter(metaAttribute -> {
+                MetaType metaType = metaAttribute.getMetaType();
+                if (metaType.isComplex()) {
+                    BaseValue baseValue = baseEntity.getBaseValue(metaAttribute.getName());
+                    BaseEntity childBaseEntity = (BaseEntity) baseValue.getValue();
+                    return metaType.isComplex() && childBaseEntity.getId() < 1;
+                }
+                return false;
+            }).findAny();
+
+        if (nullComplexKey.isPresent())
+            return null;
+
         //TODO: предусмотреть отправку parentEntityId
         return eavHubDao.find(baseEntity.getRespondentId(), baseEntity.getMetaClass().getId(), getKeyString(baseEntity), null);
     }

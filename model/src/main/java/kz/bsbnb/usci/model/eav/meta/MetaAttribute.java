@@ -11,6 +11,7 @@ public class MetaAttribute extends Persistable {
     private String title;
     private MetaType metaType;
     private boolean isKey = false;
+    private boolean isNullableKey = false;
     private Short keySet = 1;
     private boolean isFinal = false;
     private boolean isImmutable = false;
@@ -33,6 +34,14 @@ public class MetaAttribute extends Persistable {
 
     public void setKey(boolean isKey) {
         this.isKey = isKey;
+    }
+
+    public boolean isNullableKey() {
+        return isNullableKey;
+    }
+
+    public void setNullableKey(boolean nullableKey) {
+        isNullableKey = nullableKey;
     }
 
     public void setKeySet(Short keySet) {

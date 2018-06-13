@@ -28,9 +28,6 @@ public class EavHubDaoImpl implements EavHubDao {
 
     @Override
     public Long insert(EavHub eavHub) {
-        if (eavHub.getEntityId() != null || eavHub.getEntityId() == 0)
-            throw new IllegalArgumentException("id сущности для инсерта в EAV_HUB должна быть пустой");
-
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withSchemaName("EAV_DATA")
                 .withTableName("EAV_HUB")
@@ -78,15 +75,11 @@ public class EavHubDaoImpl implements EavHubDao {
     public EavHub find(Long entityId) {
         return npJdbcTemplate.queryForObject("select * from EAV_DATA.EAV_HUB where ENTITY_ID = :entityId",
                 new MapSqlParameterSource("entityId", entityId),
-                (rs, rowNum) -> {
-                    EavHub eavHub = new EavHub();
-                    eavHub.setRespondentId(Converter.convertToLong(rs.getObject("respondent_id")));
-                    eavHub.setEntityId(rs.getLong("entity_id"));
-                    eavHub.setEntityKey(rs.getString("entity_key"));
-                    eavHub.setMetaClassId(Converter.convertToLong(rs.getObject("class_id")));
-                    eavHub.setBatchId(Converter.convertToLong(rs.getObject("batch_id")));
-                    return eavHub;
-                });
+                (rs, rowNum) -> new EavHub(Converter.convertToLong(rs.getObject("respondent_id")),
+                        rs.getString("entity_key"),
+                        Converter.convertToLong(rs.getObject("class_id")),
+                        rs.getLong("entity_id"),
+                        Converter.convertToLong(rs.getObject("batch_id"))));
     }
 
     @Override

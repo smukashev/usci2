@@ -4,10 +4,7 @@ import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author BSB
@@ -133,6 +130,10 @@ public class MetaClass extends Persistable implements MetaType {
     public void removeAttributes() {
         searchable = false;
         attributes.clear();
+    }
+
+    public Collection<MetaAttribute> getAttributes() {
+        return attributes.values();
     }
 
     @Override

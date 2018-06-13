@@ -47,4 +47,8 @@ public class Converter {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    public static LocalDate convertToLocalDate(java.sql.Timestamp date) {
+        return date == null? null: date.toLocalDateTime().toLocalDate();
+    }
+
 }

@@ -1,9 +1,7 @@
 package kz.bsbnb.usci.model;
 
 public class Persistable {
-    public static final long DEFAULT_ID = 0;
-
-    protected long id = 0;
+    protected Long id;
 
     protected Persistable() {
         super();
@@ -13,11 +11,11 @@ public class Persistable {
         this.id = id;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -28,13 +26,17 @@ public class Persistable {
 
         Persistable that = (Persistable) o;
 
-        if (id != that.id) return false;
+        if (!id.equals(that.id)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
+        if (id == null)
+            return 0;
+
         return (int) (id ^ (id >>> 32));
     }
+
 }

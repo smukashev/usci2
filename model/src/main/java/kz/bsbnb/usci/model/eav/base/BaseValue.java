@@ -4,14 +4,17 @@ import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaDataType;
 
+import java.time.LocalDate;
+
 /**
  * @author BSB
  */
 
-public class BaseValue /*implements BaseType*/ {
+public class BaseValue implements Cloneable {
     private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
+    //private LocalDate reportDate;//TODO: добавить поддержку отчетной даты для значений
     private Object value;
 
     public BaseValue() {
@@ -21,6 +24,11 @@ public class BaseValue /*implements BaseType*/ {
     public BaseValue(Object value) {
         this.value = value;
     }
+
+    /*public BaseValue(LocalDate reportDate, Object value) {
+        this.reportDate = reportDate;
+        this.value = value;
+    }*/
 
     public BaseContainer getBaseContainer() {
         return baseContainer;
@@ -54,20 +62,24 @@ public class BaseValue /*implements BaseType*/ {
         this.metaAttribute = metaAttribute;
     }
 
+    /*public LocalDate getReportDate() {
+        return reportDate;
+    }
+
+    public void setReportDate(LocalDate reportDate) {
+        this.reportDate = reportDate;
+    }*/
+
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
+        if (this == obj)
             return true;
 
-        if (obj == null)
+        if (obj == null || (getClass() != obj.getClass()))
             return false;
 
-        if (!(getClass() == obj.getClass()))
-            return false;
-        else {
-            BaseValue that = (BaseValue) obj;
-            return value != null ? value.equals(that.value) : that.value == null;
-        }
+        BaseValue that = (BaseValue) obj;
+        return value != null ? value.equals(that.value) : that.value == null;
     }
 
     public boolean equalsToString(String str, MetaDataType type) {
@@ -101,13 +113,26 @@ public class BaseValue /*implements BaseType*/ {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (value != null ? value.hashCode() : 0);
+        //result = 31 * result + (reportDate != null ? reportDate.hashCode() : 0);
         return result;
     }
 
     @Override
     public BaseValue clone() {
-        //TODO: реализовать если есть необходимость или удалить
-        throw new UnsupportedOperationException("Not yet implemented");
+        BaseValue baseValue;
+        try {
+            baseValue = (BaseValue) super.clone();
+
+            if (value != null) {
+                if (value instanceof BaseEntity)
+                    baseValue.setValue(((BaseEntity) value).clone());
+                if (value instanceof BaseSet)
+                    baseValue.setValue(((BaseSet) value).clone());
+            }
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException(Errors.compose(Errors.E37));
+        }
+        return baseValue;
     }
 
     @Override

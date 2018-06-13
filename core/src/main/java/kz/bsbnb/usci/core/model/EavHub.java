@@ -6,8 +6,27 @@ public class EavHub implements Serializable {
     private Long respondentId;
     private String entityKey;
     private Long metaClassId;
-    private Long entityId;
+    private long entityId;
     private Long batchId;
+
+    public EavHub() {
+        /*An empty constructor*/
+    }
+
+    public EavHub(Long respondentId, String entityKey, Long metaClassId, Long batchId) {
+        this.respondentId = respondentId;
+        this.entityKey = entityKey;
+        this.metaClassId = metaClassId;
+        this.batchId = batchId;
+    }
+
+    public EavHub(Long respondentId, String entityKey, Long metaClassId, Long entityId, Long batchId) {
+        this.respondentId = respondentId;
+        this.entityKey = entityKey;
+        this.metaClassId = metaClassId;
+        this.entityId = entityId;
+        this.batchId = batchId;
+    }
 
     //region Getters and Setters
 
@@ -35,7 +54,7 @@ public class EavHub implements Serializable {
         this.metaClassId = metaClassId;
     }
 
-    public Long getEntityId() {
+    public long getEntityId() {
         return entityId;
     }
 

@@ -1,15 +1,13 @@
 package kz.bsbnb.usci.core.test;
 
 import kz.bsbnb.usci.core.factory.EavDataFactory;
+import kz.bsbnb.usci.core.service.BaseEntityProcessor;
 import kz.bsbnb.usci.core.service.EavHubService;
-import kz.bsbnb.usci.core.service.EavXmlService;
-import kz.bsbnb.usci.core.service.impl.EavXmlServiceImpl;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseSet;
 import kz.bsbnb.usci.model.eav.base.OperType;
 import kz.bsbnb.usci.model.eav.base.BaseValue;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,28 +22,40 @@ import java.time.LocalDate;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class EavXmlServiceTest {
-    private static final Logger logger = LoggerFactory.getLogger(EavXmlServiceTest.class);
+public class BaseEntityProcessorTest {
+    private static final Logger logger = LoggerFactory.getLogger(BaseEntityProcessorTest.class);
 
     @Autowired
     private EavDataFactory eavDataFactory;
     @Autowired
-    private EavXmlService eavXmlService;
-    @Autowired
-    private EavHubService eavHubService;
+    private BaseEntityProcessor baseEntityProcessor;
 
     @Before
     public void setUp() {
+        //
     }
 
     @Test
-    public void test0() throws SQLException {
+    public void processBaseEntityTest() throws SQLException {
         Long respondentId = 245L;
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2018, 1, 1);
 
         BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setOperation(OperType.INSERT);
+
+        BaseEntity creditor = eavDataFactory.createBaseEntity("ref_creditor", reportDate, respondentId, batchId);
+        BaseSet creditorDocs = eavDataFactory.createBaseSet("document");
+
+        BaseEntity docType = eavDataFactory.createBaseEntity("ref_doc_type", reportDate, respondentId, batchId);
+        docType.put("code", new BaseValue("15"));
+
+        BaseEntity document = eavDataFactory.createBaseEntity("document", reportDate, respondentId, batchId);
+        document.put("doc_type", new BaseValue(docType));
+        document.put("no", new BaseValue("ATYNKZKA"));
+
+        creditorDocs.put(new BaseValue(document));
+        credit.put("creditor", new BaseValue(creditor));
 
         BaseEntity primaryContract = eavDataFactory.createBaseEntity("primary_contract", reportDate, respondentId, batchId);
         primaryContract.put("no", new BaseValue("AICC.1354927"));
@@ -103,30 +113,16 @@ public class EavXmlServiceTest {
 
         BaseEntity portfolioMsfo = eavDataFactory.createBaseEntity("ref_portfolio", reportDate, respondentId, batchId);
         portfolioMsfo.put("code", new BaseValue("0933"));
-
+0
         portfolio.put("portfolio_msfo", new BaseValue(portfolioMsfo));
         credit.put("portfolio", new BaseValue(portfolio));*/
 
-        eavXmlService.process(credit);
+        baseEntityProcessor.processBaseEntity(credit, reportDate);
     }
 
     @Test
-    public void test1() {
-        Long respondentId = 245L;
-        Long batchId = Math.round(Math.random());
-        LocalDate reportDate = LocalDate.of(2018, 1, 1);
-
-        BaseEntity primaryContract = eavDataFactory.createBaseEntity("primary_contract", reportDate, respondentId, batchId);
-        primaryContract.put("no", new BaseValue("AICC.1354927"));
-        primaryContract.put("date", new BaseValue(LocalDate.of(2017, 8, 31)));
-
-        String key = eavHubService.getKeyString(primaryContract);
-
-        logger.info("eav hub key: " + key);
-
-        Assert.assertEquals("AICC.1354927\\|~~~\\|31.08.2017", key);
-
-        //Long entityId = eavHubService.find(primaryContract);
+    public void prepareBaseEntityTest() {
+        //TODO: реализовать
     }
 
 }

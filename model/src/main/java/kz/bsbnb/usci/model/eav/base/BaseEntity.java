@@ -2,16 +2,23 @@ package kz.bsbnb.usci.model.eav.base;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Stream;
 
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 import kz.bsbnb.usci.model.eav.meta.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.naming.OperationNotSupportedException;
 
 /**
  * @author BSB
  */
 
-public class BaseEntity extends Persistable implements BaseContainer {
+public class BaseEntity extends Persistable implements BaseContainer, Cloneable {
+    private static final Logger logger = LoggerFactory.getLogger(BaseEntity.class);
+
     private UUID uuid = UUID.randomUUID();
     private MetaClass metaClass;
     private LocalDate reportDate;
@@ -19,9 +26,14 @@ public class BaseEntity extends Persistable implements BaseContainer {
     private Long batchId;
     private OperType operType;
     private Map<String, BaseValue> values = new HashMap<>();
+    private Long userId;
 
     public BaseEntity() {
         /*An empty constructor*/
+    }
+
+    public BaseEntity(MetaClass metaClass) {
+        this.metaClass = metaClass;
     }
 
     public BaseEntity(MetaClass metaClass, LocalDate reportDate, Long respondentId, Long batchId) {
@@ -229,14 +241,176 @@ public class BaseEntity extends Persistable implements BaseContainer {
         return true;
     }
 
+    // метод предназначен для сверки двух сущностей по ключевым полям (все значения ключей должны совпадать)
+    // сверка сетов в качестве ключей не предусмотрена
+    // сущности должны быть одного мета класса и респондента
+    public boolean equalsByKey(BaseEntity baseEntity) {
+        if (this == baseEntity)
+            return true;
+
+        if (baseEntity == null || getClass() != baseEntity.getClass())
+            return false;
+
+        if (!this.getMetaClass().equals(baseEntity.getMetaClass()))
+            return false;
+
+        if (this.respondentId != baseEntity.getRespondentId())
+            return false;
+
+        for (String name : this.metaClass.getAttributeNames()) {
+            MetaAttribute metaAttribute = this.metaClass.getMetaAttribute(name);
+            MetaType metaType = metaAttribute.getMetaType();
+
+            if (metaAttribute.isKey() && metaType.isSet())
+                continue;
+
+            if (metaAttribute.isKey()) {
+                BaseValue thisBaseValue = this.getBaseValue(name);
+                BaseValue thatBaseValue = baseEntity.getBaseValue(name);
+
+                if (metaType.isComplex()) {
+                    if (!((BaseEntity) thisBaseValue.getValue()).equalsByKey((BaseEntity) thatBaseValue.getValue()))
+                        return false;
+                } else {
+                    try {
+                        if (!thisBaseValue.getValue().equals(thatBaseValue.getValue()))
+                            return false;
+                    } catch (NullPointerException ex) {
+                        logger.debug("NullPointerException baseEntityId=" + baseEntity.getId() + " , batchId=" + baseEntity.getBatchId() + ", attributeName=" + name);
+                        return false;
+                    }
+                }
+            }
+
+            if (metaAttribute.isNullableKey()) {
+                if (!metaType.isComplex()) {
+                    BaseValue thisBaseValue = this.getBaseValue(name);
+                    BaseValue thatBaseValue = baseEntity.getBaseValue(name);
+
+                    if (thisBaseValue == null && thatBaseValue != null) return false;
+                    if (thisBaseValue != null && thatBaseValue == null) return false;
+
+                    if (thisBaseValue != null && thatBaseValue != null) {
+                        if (thisBaseValue.getValue() == null && thatBaseValue.getValue() != null) return false;
+                        if (thisBaseValue.getValue() != null && thatBaseValue.getValue() == null) return false;
+
+                        if (thisBaseValue.getValue() != null && thatBaseValue.getValue() != null)
+                            if (!thisBaseValue.getValue().equals(thatBaseValue.getValue()))
+                                return false;
+                    }
+                } else
+                    throw new IllegalStateException("isComplex isNullableKey not supported");
+            }
+        }
+
+        if (this.metaClass.parentIsKey()) {
+            //TODO: добавить проверку parentIsKey
+
+        }
+
+        return true;
+    }
+
     @Override
     public Collection<BaseValue> getValues() {
         return values.values();
     }
 
+    // проверяет на соответсвие атрибутов
     @Override
     public boolean equals(Object obj) {
-        return false;
+        if (this == obj)
+            return true;
+
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        BaseEntity that = (BaseEntity) obj;
+
+        if (this.getMetaClass().getId() != that.getMetaClass().getId())
+            return false;
+
+        int thisValueCount = this.getValueCount();
+        int thatValueCount = that.getValueCount();
+
+        if (thisValueCount != thatValueCount)
+            return false;
+
+        for (String attributeName : metaClass.getAttributeNames()) {
+            MetaAttribute metaAttribute = metaClass.getMetaAttribute(attributeName);
+            MetaType metaType = metaAttribute.getMetaType();
+
+            BaseValue thisBaseValue = this.getBaseValue(attributeName);
+            BaseValue thatBaseValue = that.getBaseValue(attributeName);
+
+            if (thisBaseValue == null && thatBaseValue == null)
+                continue;
+
+            if (thisBaseValue == null || thatBaseValue == null)
+                return false;
+
+            if (metaType.isSet()) {
+                BaseSet thisBaseSet = (BaseSet) thisBaseValue.getValue();
+                BaseSet thatBaseSet = (BaseSet) thatBaseValue.getValue();
+
+                if (thisBaseSet == null && thatBaseSet == null)
+                    continue;
+
+                if (thisBaseSet == null || thatBaseSet == null)
+                    return false;
+
+                if (thisBaseSet.getValueCount() != thatBaseSet.getValueCount())
+                    return false;
+
+                for (BaseValue thisChildBaseValue : thisBaseSet.getValues()) {
+                    Object thisChildValue = thisChildBaseValue.getValue();
+
+                    boolean childValueFound = false;
+
+                    for (BaseValue thatChildBaseValue : thatBaseSet.getValues()) {
+                        Object thatChildValue = thatChildBaseValue.getValue();
+
+                        if (metaType.isComplex() && metaAttribute.isImmutable()) {
+                            if (((BaseEntity) thisChildValue).getId() != ((BaseEntity) thatChildValue).getId())
+                                return false;
+
+                            continue;
+                        }
+
+                        if (thisChildValue.equals(thatChildValue))
+                            childValueFound = true;
+                    }
+
+                    if (!childValueFound)
+                        return false;
+                }
+            } else {
+                Object thisValue = thisBaseValue.getValue();
+                Object thatValue = thatBaseValue.getValue();
+
+                if (thisValue == null && thatValue == null)
+                    continue;
+
+                if (thisValue == null || thatValue == null)
+                    return false;
+
+                if (metaType.isComplex() && metaAttribute.isImmutable()) {
+                    if (((BaseEntity) thisValue).getId() != ((BaseEntity) thatValue).getId())
+                        return false;
+
+                    continue;
+                }
+
+                if (!thisValue.equals(thatValue))
+                    return false;
+
+                // Проверка на изменение ключевых полей
+                if (!metaType.isComplex() && (thisBaseValue.getNewValue() != null || thatBaseValue.getNewValue() != null))
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -248,6 +422,7 @@ public class BaseEntity extends Persistable implements BaseContainer {
     public int hashCode() {
         int result = super.hashCode();
         result += 31 * result + metaClass.hashCode();
+        result += 31 * result + (int) (respondentId ^ (respondentId >>> 32));//TODO:
         result += 31 * result + values.hashCode();
 
         return result;
@@ -255,13 +430,51 @@ public class BaseEntity extends Persistable implements BaseContainer {
 
     @Override
     public BaseEntity clone() {
-        //TODO:
-        throw new UnsupportedOperationException("Not yet implemented");
+        BaseEntity baseEntityCloned;
+
+        try {
+            baseEntityCloned = (BaseEntity) super.clone();
+
+            Map<String, BaseValue> valuesCloned = new HashMap<>();
+
+            for (String attribute : values.keySet()) {
+                BaseValue baseValue = values.get(attribute);
+                BaseValue baseValueCloned = baseValue.clone();
+
+                baseValueCloned.setMetaAttribute(getMetaAttribute(attribute));
+                baseValueCloned.setBaseContainer(baseEntityCloned);
+                valuesCloned.put(attribute, baseValueCloned);
+            }
+
+            baseEntityCloned.values = valuesCloned;
+        } catch (CloneNotSupportedException ex) {
+            throw new RuntimeException(Errors.compose(Errors.E8));
+        }
+
+        return baseEntityCloned;
     }
 
     @Override
-    public MetaType getMetaType() {
+    public MetaClass getMetaType() {
         return metaClass;
+    }
+
+    public MetaType getAttributeType(String attribute) {
+        if (attribute.contains(".")) {
+            int index = attribute.indexOf(".");
+            String parentIdentifier = attribute.substring(0, index);
+
+            MetaType metaType = metaClass.getAttributeType(parentIdentifier);
+            if (metaType.isComplex() && !metaType.isSet()) {
+                MetaClass childMeta = (MetaClass) metaType;
+                String childIdentifier = attribute.substring(index, attribute.length() - 1);
+                return childMeta.getAttributeType(childIdentifier);
+            } else {
+                return null;
+            }
+        } else {
+            return metaClass.getAttributeType(attribute);
+        }
     }
 
     public MetaAttribute getMetaAttribute(String attribute) {
@@ -284,8 +497,20 @@ public class BaseEntity extends Persistable implements BaseContainer {
         this.batchId = batchId;
     }
 
-    public Set<String> getAttributes() {
+    public Set<String> getAttributeNames() {
         return values.keySet();
+    }
+
+    public Stream<MetaAttribute> getAttributes() {
+        return values.keySet().stream().map(metaClass::getMetaAttribute);
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     @Override
