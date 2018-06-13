@@ -27,6 +27,13 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         this.npJdbcTemplate = npJdbcTemplate;
     }
 
+    /**
+     * метод подгружает сущность из таблицы БД по схеме одна сущность = одна запись в таблице
+     * само получение сущности из БД означает что все атрибуты тоже будут подхвачены
+     * комлексные атрибуты (сеты и сущности) тоже подгружаются но уже каждый отдельным запросом
+     * то есть получение сущности из бд влечет получение других зависимых сущностей
+     * для деталей хранения в таблицах БД см. код BaseEntityProcessor
+     * */
     @Override
     public BaseEntity loadBaseEntity(BaseEntity baseEntity, LocalDate reportDate) {
         if (baseEntity.getId() == null)
@@ -96,15 +103,20 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         return baseEntity;
     }
 
+    /**
+     * метод заполняет атрибуты сущности значениями полученными из таблицы БД (см. пояснения в коде)
+     * */
     private BaseEntity fillEntityAttributes(Map<String, Object> values, BaseEntity baseEntity, LocalDate reportDate) {
         try {
             MetaClass metaClass = baseEntity.getMetaClass();
 
+            // присваиваю поля которые есть у любой сущности
+            baseEntity.setId(Converter.convertToLong(values.get("ENTITY_ID")));
             baseEntity.setReportDate(Converter.convertToLocalDate((java.sql.Timestamp) values.get("REPORT_DATE")));
             baseEntity.setBatchId(Converter.convertToLong(values.get("BATCH_ID")));
             baseEntity.setRespondentId(Converter.convertToLong(values.get("CREDITOR_ID")));
-            baseEntity.setId(Converter.convertToLong(values.get("ENTITY_ID")));
 
+            // сканирую каждый атрибут мета класса сущности чтобы присвоить значения
             for (MetaAttribute attribute : metaClass.getAttributes()) {
                 MetaType metaType = attribute.getMetaType();
 
@@ -118,11 +130,16 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                     if (metaType.isSet()) {
                         BaseSet baseSet = loadComplexSet(baseEntity, attribute, reportDate);
                         OracleArray oracleArray = (OracleArray) sqlValue;
+
+                        // сравниваю кол-во записей в сете в столбце сущности и кол-во сущностей в сете которые были подгружены отдельным запросом
                         if (baseSet.getValueCount() != oracleArray.length())
-                            throw new IllegalStateException("Кол-во элементов в мнжестве не верное " + baseSet);
+                            throw new IllegalStateException("Кол-во элементов в множестве не верное " + baseSet);
 
                         javaValue = baseSet;
                     } else {
+                        // отдельно подгружаю зависимую сущность
+                        // в столбце хранится id зависимой сущности, ссылка нужна чтобы потом подгузить эту зависимую сущность из БД
+                        // пример: справочники и тд
                         MetaClass childMetClass = (MetaClass) attribute.getMetaType();
                         BaseEntity childBaseEntity = new BaseEntity(childMetClass);
                         childBaseEntity.setId(Converter.convertToLong(values.get(attribute.getColumnName())));
@@ -147,6 +164,19 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         return baseEntity;
     }
 
+    /**
+     * метод загружает сущности комлексного сета который хранится в таблице родительской сущности в столбце как массив id
+     * пример: кредит хранит список id залогов в столбце PLEDGE_IDS
+     * чтобы загрузить все залоги разом необходимо оборатить столбец ключевым словом table(наименование столбца) кредита
+     * пример sql запроса:
+     * select p.*
+         from EAV_DATA.PLEDGE p,
+              EAV_DATA.CREDIT c,
+              table(c.PLEDGES_IDS) cp
+        where p.ENTITY_ID = cp.COLUMN_VALUE
+          and ...
+      также необходимо добавить подзапрос чтобы получить последнюю актуальную запись сущности
+     * */
     private BaseSet loadComplexSet(BaseEntity parentBaseEntity, MetaAttribute metaAttribute, LocalDate reportDate) {
         MetaSet metaSet = (MetaSet)metaAttribute.getMetaType();
         MetaClass metaClass = (MetaClass) metaSet.getMetaType();
@@ -155,11 +185,16 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         MetaClass parentMetaClass = parentBaseEntity.getMetaClass();
         String parentTableAlias = parentMetaClass.getClassName().toLowerCase();
 
+        // включаю обязательные столбцы которые есть в любой таблие:
+        // ENTITY_ID - id сущности, REPORT_DATE - отчетная дата
+        // CREDITOR_ID - id респондента, BATCH_ID - id батча по которому прилетела последняя операция
         StringBuilder sb = new StringBuilder("select $tableAlias.ENTITY_ID,\n");
         sb.append("$tableAlias.REPORT_DATE,\n");
         sb.append("$tableAlias.CREDITOR_ID,\n");
         sb.append("$tableAlias.BATCH_ID");
 
+        // вместо * в select, непосредственно прописываю столбцы которые необходимо получить
+        // потому что не все атрибуты могут действовать на отчетную дату
         metaClass.getAttributes().forEach(attribute -> {
             sb.append(",\n");
             sb.append(tableAlias).append(".");
@@ -174,6 +209,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         sb.append(String.join(".", parentMetaClass.getSchemaData(), parentMetaClass.getTableName()));
         sb.append(" ").append(parentTableAlias).append(",\n");
 
+        // делаю join столбца массив (массивы NESTED TABLE хранятся в Oracle как физические таблицы)
         sb.append("table($parentTableAlias.$arrayColumnName) $arrayTableAlias\n");
 
         sb.append("where $parentTableAlias.ENTITY_ID = :parentEntityId\n");
@@ -223,12 +259,13 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         return baseSet;
     }
 
-
-    // конвертация значений jdbc формата в формат java
-    // пояснения: BOOLEAN хранится в формате varchar2(1)
-    // дата конвертируется из java.sql.Timestamp в LocalDate
-    // числа конвертируются из NUMBER в BigDecimal и потом в Long, Double и тд
-    // String получаем как есть (varchar2)
+    /**
+     * метод конвертирует значение sql jdbc формата в формат java eav (удобный нам формат)
+     * пояснения: BOOLEAN в таблицах БД хранится в формате varchar2(1)
+     * дата конвертируется из java.sql.Timestamp в LocalDate
+     * числа хранятся в БД как NUMBER, конвертируются из BigDecimal в Long, Double и тд
+     * String получаем как есть (varchar2)
+     * */
     private Object convertRmValueToJavaType(MetaAttribute attribute, Object sqlValue) {
         MetaType metaType = attribute.getMetaType();
 
