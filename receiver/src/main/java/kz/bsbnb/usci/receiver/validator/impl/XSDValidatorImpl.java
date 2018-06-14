@@ -27,7 +27,7 @@ import java.util.List;
 @Service
 public class XSDValidatorImpl implements XSDValidator {
     private static final Logger logger = LoggerFactory.getLogger(XSDValidatorImpl.class);
-    
+
     List<ErrorMessage> validate(InputStream xsd, InputStream xml) {
         return null;
     }
@@ -45,36 +45,51 @@ public class XSDValidatorImpl implements XSDValidator {
         public void error(SAXParseException exception) throws SAXException {
             isValid = false;
             errMessage = exception.getMessage();
+            System.out.println("Строка: "+exception.getLineNumber()+"Столбец: "+exception.getColumnNumber());
+
+
         }
 
         @Override
         public void fatalError(SAXParseException exception) throws SAXException {
             isValid = false;
             errMessage = exception.getMessage();
+            System.out.println("Строка: "+exception.getLineNumber()+"Столбец: " +exception.getColumnNumber());
+
         }
     }
 
     @Override
     public boolean validateSchema(InputStream xsdInputStream, InputStream xmlInputStream) throws IOException, SAXException {
 
-        Source xsd = new StreamSource(xsdInputStream);
-        Source xml = new StreamSource(xmlInputStream);
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        Schema schema = schemaFactory.newSchema(xsd);
 
-        Validator validator = schema.newValidator();
+    Source xsd = new StreamSource(xsdInputStream);
+    Source xml = new StreamSource(xmlInputStream);
+    SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Schema schema = schemaFactory.newSchema(xsd);
 
-        ErrorHandlerImpl errorHandlerImpl = new ErrorHandlerImpl();
-        validator.setErrorHandler(errorHandlerImpl);
+    Validator validator = schema.newValidator();
 
-        validator.validate(xml);
+    ErrorHandlerImpl errorHandlerImpl = new ErrorHandlerImpl();
+    validator.setErrorHandler(errorHandlerImpl);
 
-        if (!errorHandlerImpl.isValid) {
-            logger.error("XML не прошёл проверку XSD: " + errorHandlerImpl.errMessage);
+    try{validator.validate(xml);}
+    catch(SAXParseException e) {
+        System.out.println(e.getLineNumber()+e.getColumnNumber());
+        e.printStackTrace();
         }
 
-        return errorHandlerImpl.isValid;
-    }
+  if (!errorHandlerImpl.isValid) {
+                logger.error("XML не прошёл проверку XSD: " + errorHandlerImpl.errMessage);
+
+
+            }
+
+            return errorHandlerImpl.isValid;
+            }
+
+
+
 
 
 
