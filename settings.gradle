@@ -3,6 +3,6 @@ rootProject.name = 'usci'
 include ':util'
 include ':model'
 include ':storage'
-include ':reciver'
+include ':receiver'
 include ':core'
 

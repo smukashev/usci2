@@ -6,7 +6,7 @@ public class LoadManagerConfig {
     private int maxBatchNum;
 
     /**
-     * @associates <{kz.bsbnb.usci.reciver.LoaderPriority}>
+     * @associates <{kz.bsbnb.usci.receiver.LoaderPriority}>
      */
     private List priorityList;
 }

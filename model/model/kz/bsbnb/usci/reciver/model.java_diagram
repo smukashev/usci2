@@ -204,7 +204,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;LoaderPriority' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;LoaderPriority' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='129.6328125' width='120.1875'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id240f2255-5f5e-4d98-810d-62f4547e4bb4'>
@@ -408,7 +408,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;XSDValidator' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;XSDValidator' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='120.0' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='id29c4e00d-44f1-496e-aac8-37194c66d941'>
@@ -612,7 +612,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;LoadManager' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;LoadManager' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='144.4375' width='200.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='idcf7b3fc3-70cb-4ab6-a8ae-ee8c8fd30e05'>
@@ -816,7 +816,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;XMLParser' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;XMLParser' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='120.0' width='120.0'/>
     </contained>
     <contained xmi:type='DI:GraphNode' xmi:id='ida017617b-85f6-4865-8f40-4a96a95d9968'>
@@ -1021,7 +1021,7 @@
       <property xmi:type='DI:Property' key='sortMethodsAlpha' value='true'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='EvenRowColor' value='#eef2f5'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;LoadManagerConfig' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;LoadManagerConfig' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='120.0' width='153.0'/>
     </contained>
     <contained xmi:type='DI:GraphEdge' xmi:id='id0cf7a11b-2d07-42f2-9c58-089fe0c5631d' anchor='id8a12938d-9f42-437a-95e6-2e7ee0704838 id89a12c15-094f-412b-a122-f57d0f8f6f25'>
@@ -1050,7 +1050,7 @@
       <property xmi:type='DI:Property' key='font' value='SansSerif,plain,11'/>
       <property xmi:type='DI:Property' key='showCardinality' value='true'/>
       <property xmi:type='DI:Property' key='showRoleNames' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.reciver;;LoadManagerConfig;;priorityList'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDA;;kz.bsbnb.usci.receiver;;LoadManagerConfig;;priorityList'/>
       <waypoint xmi:type='DI:Point' x='1117.5' y='229.6328125'/>
       <waypoint xmi:type='DI:Point' x='1117.5' y='129.6328125'/>
     </contained>
@@ -1255,7 +1255,7 @@
       <property xmi:type='DI:Property' key='showPackage' value='false'/>
       <property xmi:type='DI:Property' key='filterMethodViz' value='PUBLIC PROTECTED PACKAGE PRIVATE'/>
       <property xmi:type='DI:Property' key='showAttributeType' value='true'/>
-      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.reciver;;###;;Synchroniser' presentation='SYMBOLIC'/>
+      <semanticModel xmi:type='DI:CoreSemanticModelBridge' element='JAVA:JIDC;;kz.bsbnb.usci.receiver;;###;;Synchroniser' presentation='SYMBOLIC'/>
       <size xmi:type='DI:Dimension' height='120.0' width='200.0'/>
     </contained>
     <property xmi:type='DI:Property' key='ContainerLayoutStyle' value='1'/>
