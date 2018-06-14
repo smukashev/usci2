@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author BSB
  */
-
+//TODO: добавить пояснения по классу и методам
 @Repository
 public class MetaClassDaoImpl implements MetaClassDao {
     private final NamedParameterJdbcTemplate npJdbcTemplate;

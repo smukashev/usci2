@@ -1,5 +1,6 @@
 package kz.bsbnb.usci.model.eav.base;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
@@ -9,8 +10,6 @@ import kz.bsbnb.usci.model.Persistable;
 import kz.bsbnb.usci.model.eav.meta.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.naming.OperationNotSupportedException;
 
 /**
  * @author BSB
@@ -27,6 +26,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
     private OperType operType;
     private Map<String, BaseValue> values = new HashMap<>();
     private Long userId;
+    private Parent parent;
 
     public BaseEntity() {
         /*An empty constructor*/
@@ -108,6 +108,10 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         baseValue.setMetaAttribute(metaAttribute);
 
         values.put(attribute, baseValue);
+    }
+
+    public void setParent(BaseEntity parentEntity, MetaAttribute metaAttribute) {
+        parent = new Parent(parentEntity, metaAttribute);
     }
 
     public BaseValue getBaseValue(String attribute) {
@@ -254,7 +258,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         if (!this.getMetaClass().equals(baseEntity.getMetaClass()))
             return false;
 
-        if (this.respondentId != baseEntity.getRespondentId())
+        if (!this.respondentId.equals(baseEntity.getRespondentId()))
             return false;
 
         for (String name : this.metaClass.getAttributeNames()) {
@@ -513,6 +517,14 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         this.userId = userId;
     }
 
+    public Parent getParent() {
+        return parent;
+    }
+
+    public void setParent(Parent parent) {
+        this.parent = parent;
+    }
+
     @Override
     public boolean isSet() {
         return false;
@@ -526,6 +538,39 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
     @Override
     public int getValueCount() {
         return values.size();
+    }
+
+    private class Parent implements Serializable {
+        private BaseEntity entity;
+        private MetaAttribute attribute;
+
+        public Parent(BaseEntity entity, MetaAttribute attribute) {
+            this.entity = entity;
+            this.attribute = attribute;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Parent that = (Parent) o;
+
+            if (entity == null || attribute == null || that.entity == null || that.attribute == null)
+                throw new IllegalStateException(o.toString());
+
+            if (!attribute.getId().equals(that.attribute.getId()))
+                return false;
+
+            if (entity.getId() != null && that.entity.getId() != null && entity.getId().equals(that.entity.getId()))
+                return true;
+            if (entity.getId() != null || that.entity.getId() != null)
+                return false;
+            if (entity.getId() == null && that.entity.getId() == null && entity.equalsByKey(that.entity))
+                return true;
+
+            return false;
+        }
     }
 
 }

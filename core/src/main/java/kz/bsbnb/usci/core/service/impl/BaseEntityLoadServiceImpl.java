@@ -1,7 +1,6 @@
-package kz.bsbnb.usci.core.dao.impl;
+package kz.bsbnb.usci.core.service.impl;
 
-import kz.bsbnb.usci.core.dao.BaseEntityLoadService;
-import kz.bsbnb.usci.core.model.EavDbSchema;
+import kz.bsbnb.usci.core.service.BaseEntityLoadService;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseSet;
@@ -9,7 +8,6 @@ import kz.bsbnb.usci.model.eav.base.BaseValue;
 import kz.bsbnb.usci.model.eav.meta.*;
 import kz.bsbnb.usci.util.Converter;
 import oracle.jdbc.OracleArray;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,6 +16,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+
+/**
+ * @author BSB
+ */
 
 @Repository
 public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
@@ -32,10 +34,10 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
      * само получение сущности из БД означает что все атрибуты тоже будут подхвачены
      * комлексные атрибуты (сеты и сущности) тоже подгружаются но уже каждый отдельным запросом
      * то есть получение сущности из бд влечет получение других зависимых сущностей
-     * для деталей хранения в таблицах БД см. код BaseEntityProcessor
+     * см. код BaseEntityApplyService (как данные храненятся в таблицах БД)
      * */
     @Override
-    public BaseEntity loadBaseEntity(BaseEntity baseEntity, LocalDate reportDate) {
+    public BaseEntity loadBaseEntity(BaseEntity baseEntity, LocalDate existingReportDate, LocalDate savingReportDate) {
         if (baseEntity.getId() == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E93));
 
@@ -44,7 +46,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
 
         MetaClass metaClass = baseEntity.getMetaClass();
 
-        java.sql.Date sqlReportDate = Converter.convertToSqlDate(reportDate);
+        java.sql.Date sqlReportDate = Converter.convertToSqlDate(existingReportDate);
 
         StringBuilder sb = new StringBuilder("select $tableAlias.ENTITY_ID,\n");
         sb.append("$tableAlias.REPORT_DATE,\n");
@@ -98,7 +100,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
             throw new IllegalStateException(Errors.compose(Errors.E92, baseEntity));
 
         Map<String, Object> values = rows.get(0);
-        fillEntityAttributes(values, baseEntity, reportDate);
+        fillEntityAttributes(values, baseEntity, existingReportDate);
 
         return baseEntity;
     }
@@ -143,7 +145,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                         childBaseEntity.setId(Converter.convertToLong(values.get(attribute.getColumnName())));
                         childBaseEntity.setRespondentId(childMetClass.isDictionary()? 0: baseEntity.getRespondentId());
 
-                        javaValue = loadBaseEntity(childBaseEntity, reportDate);
+                        javaValue = loadBaseEntity(childBaseEntity, reportDate, reportDate);
                     }
                 } else {
                     if (metaType.isSet()) {
@@ -299,6 +301,8 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
 
         return javaValue;
     }
+
+
 
 
 }

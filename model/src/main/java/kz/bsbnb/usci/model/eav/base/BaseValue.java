@@ -14,21 +14,15 @@ public class BaseValue implements Cloneable {
     private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
-    //private LocalDate reportDate;//TODO: добавить поддержку отчетной даты для значений
     private Object value;
 
     public BaseValue() {
-        /*An empty constructor*/
+        /*Пустой конструктор*/
     }
 
     public BaseValue(Object value) {
         this.value = value;
     }
-
-    /*public BaseValue(LocalDate reportDate, Object value) {
-        this.reportDate = reportDate;
-        this.value = value;
-    }*/
 
     public BaseContainer getBaseContainer() {
         return baseContainer;
@@ -61,14 +55,6 @@ public class BaseValue implements Cloneable {
     public void setMetaAttribute(MetaAttribute metaAttribute) {
         this.metaAttribute = metaAttribute;
     }
-
-    /*public LocalDate getReportDate() {
-        return reportDate;
-    }
-
-    public void setReportDate(LocalDate reportDate) {
-        this.reportDate = reportDate;
-    }*/
 
     @Override
     public boolean equals(Object obj) {
@@ -113,7 +99,6 @@ public class BaseValue implements Cloneable {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (value != null ? value.hashCode() : 0);
-        //result = 31 * result + (reportDate != null ? reportDate.hashCode() : 0);
         return result;
     }
 

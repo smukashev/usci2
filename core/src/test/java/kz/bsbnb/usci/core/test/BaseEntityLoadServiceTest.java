@@ -1,6 +1,6 @@
 package kz.bsbnb.usci.core.test;
 
-import kz.bsbnb.usci.core.dao.BaseEntityLoadService;
+import kz.bsbnb.usci.core.service.BaseEntityLoadService;
 import kz.bsbnb.usci.core.factory.EavDataFactory;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import org.junit.Before;
@@ -31,14 +31,14 @@ public class BaseEntityLoadServiceTest {
 
     @Test
     public void loadBaseEntityTest() {
-        Long respondentId = 1L;//245
+        Long respondentId = 245L;
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2018, 1, 1);
 
         BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
-        credit = baseEntityLoadService.loadBaseEntity(credit, reportDate);
+        credit = baseEntityLoadService.loadBaseEntity(credit, reportDate, reportDate);
 
         logger.info(credit.toString());
     }

@@ -116,7 +116,7 @@ public class EavHubServiceImpl implements EavHubService {
                 if (metaType.isComplex()) {
                     BaseValue baseValue = baseEntity.getBaseValue(metaAttribute.getName());
                     BaseEntity childBaseEntity = (BaseEntity) baseValue.getValue();
-                    return metaType.isComplex() && childBaseEntity.getId() < 1;
+                    return metaType.isComplex() && childBaseEntity.getId() == null;
                 }
                 return false;
             }).findAny();
