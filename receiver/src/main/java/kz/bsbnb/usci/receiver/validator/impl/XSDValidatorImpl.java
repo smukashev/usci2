@@ -45,7 +45,8 @@ public class XSDValidatorImpl implements XSDValidator {
         public void error(SAXParseException exception) throws SAXException {
             isValid = false;
             errMessage = exception.getMessage();
-            System.out.println("Строка: "+exception.getLineNumber()+"Столбец: "+exception.getColumnNumber());
+            logger.error("Строка: "+exception.getLineNumber()+" Столбец: "+exception.getColumnNumber()+errMessage);
+
 
 
         }
@@ -54,7 +55,7 @@ public class XSDValidatorImpl implements XSDValidator {
         public void fatalError(SAXParseException exception) throws SAXException {
             isValid = false;
             errMessage = exception.getMessage();
-            System.out.println("Строка: "+exception.getLineNumber()+"Столбец: " +exception.getColumnNumber());
+            logger.error("Строка: "+exception.getLineNumber()+" Столбец: "+exception.getColumnNumber()+errMessage);
 
         }
     }
