@@ -38,7 +38,7 @@ public class BaseEntityLoadServiceTest {
         BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
-        credit = baseEntityLoadService.loadBaseEntity(credit, reportDate, reportDate);
+        credit = baseEntityLoadService.loadBaseEntity(credit.getId(), credit.getRespondentId(), credit.getMetaClass(), reportDate, reportDate);
 
         logger.info(credit.toString());
     }

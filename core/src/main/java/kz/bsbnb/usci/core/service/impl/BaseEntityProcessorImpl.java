@@ -92,7 +92,12 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
 
     /**
      * метод выполняеет следующие задачи:
-     * - поиск сущности и присовение ей ID
+     * - поиск сущности и присовение ей ID:
+     * алгоритм поиска:
+     *  идет обход в глубину всего дерева, всех комплексных* атрибутов сущностей
+     *  затем по ключевым атрибутам сущности происходит поиск в БД
+     *  пример:
+     *  кредит, залоги, субьект, справочники, документы подвергаются поиску
      * - проставляем родителя у дочерних узлов
      * */
     // TODO: черновой вариант
@@ -133,11 +138,8 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
             }
         }
 
-        if (metaClass.isSearchable() && baseEntity.getId() == null) {
-            Long baseEntityId = searchBaseEntity(baseEntity);
-            if (baseEntityId != null)
-                baseEntity.setId(baseEntityId);
-        }
+        if (metaClass.isSearchable() && baseEntity.getId() == null)
+            baseEntity.setId(searchBaseEntity(baseEntity));
 
         //TODO: parentIsKey проблему решить
         if (metaClass.parentIsKey() && baseEntity.getId() == null)

@@ -3,18 +3,24 @@ package kz.bsbnb.usci.model.eav.base;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaDataType;
+import kz.bsbnb.usci.model.eav.meta.MetaSet;
+import kz.bsbnb.usci.model.eav.meta.MetaType;
 
-import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author BSB
  */
 
 public class BaseValue implements Cloneable {
+    private UUID uuid = UUID.randomUUID();
     private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
     private Object value;
+    private Boolean changed = Boolean.FALSE;
 
     public BaseValue() {
         /*Пустой конструктор*/
@@ -56,6 +62,14 @@ public class BaseValue implements Cloneable {
         this.metaAttribute = metaAttribute;
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -93,6 +107,91 @@ public class BaseValue implements Cloneable {
         }
 
         return false;
+    }
+
+    public boolean equalsByValue(BaseValue baseValue) {
+        MetaAttribute thisMetaAttribute = this.getMetaAttribute();
+        MetaAttribute thatMetaAttribute = baseValue.getMetaAttribute();
+
+        if (thisMetaAttribute == null || thatMetaAttribute == null)
+            throw new IllegalStateException(Errors.compose(Errors.E38));
+
+        return thisMetaAttribute.getId().equals(thatMetaAttribute.getId()) &&
+                this.equalsByValue(thisMetaAttribute.getMetaType(), baseValue);
+    }
+
+    public boolean equalsByValue(MetaType metaType, BaseValue baseValue) {
+        Object thisValue = this.getValue();
+        Object thatValue = baseValue.getValue();
+
+        if (thisValue == null || thatValue == null)
+            throw new RuntimeException(Errors.compose(Errors.E39));
+
+        if (metaType.isComplex()) {
+            if (metaType.isSet()) {
+                BaseSet thisBaseSet = (BaseSet) thisValue;
+                BaseSet thatBaseSet = (BaseSet) thatValue;
+
+                Set<Long> thisIds = new HashSet<>();
+                for (BaseValue thisChildBaseValue : thisBaseSet.getValues()) {
+                    BaseEntity thisBaseEntity = (BaseEntity) thisChildBaseValue.getValue();
+                    thisIds.add(thisBaseEntity.getId());
+                }
+
+                Set<Long> thatIds = new HashSet<>();
+                for (BaseValue thatChildBaseValue : thatBaseSet.getValues()) {
+                    BaseEntity thatBaseEntity = (BaseEntity) thatChildBaseValue.getValue();
+                    thatIds.add(thatBaseEntity.getId());
+                }
+
+                return thisIds.equals(thatIds);
+            } else {
+                BaseEntity thisBaseEntity = (BaseEntity) thisValue;
+                BaseEntity thatBaseEntity = (BaseEntity) thatValue;
+                return thisBaseEntity.getId().equals(thatBaseEntity.getId()) && thisBaseEntity.getId() != null;
+            }
+        } else {
+            if (metaType.isSet()) {
+                MetaSet metaSet = (MetaSet) metaType;
+                MetaType childMetaType = metaSet.getMetaType();
+
+                BaseSet thisBaseSet = (BaseSet) thisValue;
+                BaseSet thatBaseSet = (BaseSet) thatValue;
+
+                boolean baseValueNotFound;
+                Set<UUID> processedUuids = new HashSet<>();
+                for (BaseValue thisBaseValue : thisBaseSet.getValues()) {
+                    baseValueNotFound = true;
+                    for (BaseValue thatBaseValue : thatBaseSet.getValues()) {
+                        if (processedUuids.contains(thatBaseValue.getUuid())) {
+                            continue;
+                        }
+
+                        if (thisBaseValue.equalsByValue(childMetaType, thatBaseValue)) {
+                            processedUuids.add(thatBaseValue.getUuid());
+                            baseValueNotFound = false;
+                            break;
+                        }
+                    }
+
+                    if (baseValueNotFound) {
+                        return false;
+                    }
+                }
+
+                return true;
+            } else {
+                return thisValue.equals(thatValue);
+            }
+        }
+    }
+
+    public Boolean isChanged() {
+        return changed;
+    }
+
+    public void setChanged(Boolean changed) {
+        this.changed = changed;
     }
 
     @Override

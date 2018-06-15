@@ -36,6 +36,12 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         this.metaClass = metaClass;
     }
 
+    public BaseEntity(long id, MetaClass metaClass, Long respondentId) {
+        super(id);
+        this.metaClass = metaClass;
+        this.respondentId = respondentId;
+    }
+
     public BaseEntity(MetaClass metaClass, LocalDate reportDate, Long respondentId, Long batchId) {
         this.metaClass = metaClass;
         this.reportDate = reportDate;
@@ -331,7 +337,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
 
         BaseEntity that = (BaseEntity) obj;
 
-        if (this.getMetaClass().getId() != that.getMetaClass().getId())
+        if (!this.getMetaClass().getId().equals(that.getMetaClass().getId()))
             return false;
 
         int thisValueCount = this.getValueCount();
@@ -375,7 +381,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
                         Object thatChildValue = thatChildBaseValue.getValue();
 
                         if (metaType.isComplex() && metaAttribute.isImmutable()) {
-                            if (((BaseEntity) thisChildValue).getId() != ((BaseEntity) thatChildValue).getId())
+                            if (!((BaseEntity) thisChildValue).getId().equals(((BaseEntity) thatChildValue).getId()))
                                 return false;
 
                             continue;
@@ -399,7 +405,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
                     return false;
 
                 if (metaType.isComplex() && metaAttribute.isImmutable()) {
-                    if (((BaseEntity) thisValue).getId() != ((BaseEntity) thatValue).getId())
+                    if (!((BaseEntity) thisValue).getId().equals(((BaseEntity) thatValue).getId()))
                         return false;
 
                     continue;

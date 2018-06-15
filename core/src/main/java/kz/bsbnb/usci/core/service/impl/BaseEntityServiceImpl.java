@@ -34,7 +34,7 @@ public class BaseEntityServiceImpl implements BaseEntityService {
      * */
     @Override
     public boolean existsBaseEntity(BaseEntity baseEntity, LocalDate reportDate) {
-        if (baseEntity.getId() == null || baseEntity.getId() < 1)
+        if (baseEntity.getId() == null)
             throw new IllegalArgumentException("У сущности отсутствует id");
         if (baseEntity.getRespondentId() == null)
             throw new IllegalArgumentException("У сущности отсутствует id респондента");

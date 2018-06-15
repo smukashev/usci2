@@ -124,7 +124,7 @@ public class BaseEntityProcessorTest {
     public void applyBaseEntityAdvancedTest() throws SQLException {
         Long respondentId = 2384L;
         Long batchId = Math.round(Math.random());
-        LocalDate reportDate = LocalDate.of(2018, 1, 1);
+        LocalDate reportDate = LocalDate.of(2018, 2, 1);
 
         BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
@@ -157,11 +157,11 @@ public class BaseEntityProcessorTest {
         credit.put("actual_issue_date", new BaseValue(LocalDate.of(2017, 8, 31)));
 
         BaseEntity creditPurpose = eavDataFactory.createBaseEntity("ref_credit_purpose", reportDate, 0L, batchId);
-        currency.put("code", new BaseValue("01"));
+        creditPurpose.put("code", new BaseValue("01"));
         credit.put("credit_purpose", new BaseValue(creditPurpose));
 
         BaseEntity creditObject = eavDataFactory.createBaseEntity("ref_credit_object", reportDate, 0L, batchId);
-        currency.put("code", new BaseValue("03"));
+        creditObject.put("code", new BaseValue("03"));
         credit.put("credit_object", new BaseValue(creditObject));
 
         credit.put("amount", new BaseValue(100000D));
@@ -183,26 +183,18 @@ public class BaseEntityProcessorTest {
 
         BaseEntity pledge0 = eavDataFactory.createBaseEntity("pledge", reportDate, respondentId, batchId);
         pledge0.put("contract", new BaseValue("KD0014619/GR1"));
-        pledge0.put("pledge_type", new BaseValue(pledgeType10));
-        pledge0.put("value", new BaseValue(6000000d));
+        pledge0.put("pledge_type", new BaseValue(pledgeType18));
+        pledge0.put("value", new BaseValue(99855d));
 
         BaseEntity pledge1 = eavDataFactory.createBaseEntity("pledge", reportDate, respondentId, batchId);
-        pledge1.put("contract", new BaseValue("KD0014619/1"));
-        pledge1.put("pledge_type", new BaseValue(pledgeType18));
-        pledge1.put("value", new BaseValue(15127000d));
+        pledge1.put("contract", new BaseValue("SD0014619/2"));
+        pledge1.put("pledge_type", new BaseValue(pledgeType10));
+        pledge1.put("value", new BaseValue(2d));
 
         pledges.put(new BaseValue(pledge0));
         pledges.put(new BaseValue(pledge1));
 
         credit.put("pledges", new BaseValue(pledges));
-
-        /*BaseEntity portfolio = eavDataFactory.createBaseEntity("portfolio", reportDate, respondentId, batchId);
-
-        BaseEntity portfolioMsfo = eavDataFactory.createBaseEntity("ref_portfolio", reportDate, respondentId, batchId);
-        portfolioMsfo.put("code", new BaseValue("0933"));
-
-        portfolio.put("portfolio_msfo", new BaseValue(portfolioMsfo));
-        credit.put("portfolio", new BaseValue(portfolio));*/
 
         baseEntityProcessor.processBaseEntity(credit, reportDate);
     }

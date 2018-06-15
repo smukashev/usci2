@@ -11,7 +11,8 @@ public class BaseEntityManager {
 
     private List<BaseEntity> hubs = new ArrayList<>();
     private List<BaseEntity> insertedEntities = new ArrayList<>();
-    private Map<BaseEntity, List<BaseValue>> updatedEntities = new HashMap<>();
+    private List<BaseEntity> updatedEntities = new ArrayList<>();
+    private List<BaseEntity> newHistoryEntities = new ArrayList<>();
     private Map<String, List<BaseEntity>> deletedEntities = new HashMap<>();
     private Map<String, List<BaseEntity>> processedEntities = new HashMap<>();
 
@@ -37,14 +38,18 @@ public class BaseEntityManager {
         insertedEntities.add(insertedEntity);
     }
 
-    public void registerAsUpdated(BaseEntity updatedEntity, BaseValue baseValue) {
-        if (updatedEntity == null || baseValue == null)
+    public void registerAsUpdated(BaseEntity updatedEntity) {
+        if (updatedEntity == null)
             throw new RuntimeException(Errors.compose(Errors.E54));
 
-        if (updatedEntities.containsKey(updatedEntity))
-            updatedEntities.get(updatedEntity).add(baseValue);
-        else
-            updatedEntities.put(updatedEntity, new ArrayList<>(Collections.singletonList(baseValue)));
+        updatedEntities.add(updatedEntity);
+    }
+
+    public void registerAsNewHistory(BaseEntity newHistory) {
+        if (newHistory == null)
+            throw new RuntimeException(Errors.compose(Errors.E54));
+
+        newHistoryEntities.add(newHistory);
     }
 
     public void registerAsDeleted(BaseEntity deletedEntity) {
@@ -100,6 +105,14 @@ public class BaseEntityManager {
 
     public List<BaseEntity> getInsertedEntities() {
         return insertedEntities;
+    }
+
+    public List<BaseEntity> getNewHistoryEntities() {
+        return newHistoryEntities;
+    }
+
+    public List<BaseEntity> getUpdatedEntities() {
+        return updatedEntities;
     }
 
     public void saveBaseEntitySavingAppliedPair(BaseEntity baseEntitySaving, BaseEntity baseEntityApplied) {

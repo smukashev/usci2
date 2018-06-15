@@ -37,14 +37,14 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
      * см. код BaseEntityApplyService (как данные храненятся в таблицах БД)
      * */
     @Override
-    public BaseEntity loadBaseEntity(BaseEntity baseEntity, LocalDate existingReportDate, LocalDate savingReportDate) {
-        if (baseEntity.getId() == null)
+    public BaseEntity loadBaseEntity(Long id, Long respondentId, MetaClass metaClass, LocalDate existingReportDate, LocalDate savingReportDate) {
+        if (id == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E93));
 
-        if (baseEntity.getRespondentId() == null)
+        if (respondentId == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E93));
 
-        MetaClass metaClass = baseEntity.getMetaClass();
+        BaseEntity baseEntityLoad = new BaseEntity(id, metaClass, respondentId);
 
         java.sql.Date sqlReportDate = Converter.convertToSqlDate(existingReportDate);
 
@@ -87,22 +87,22 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         query = query.replace("$subTableAlias", "sub_" + metaClass.getTableName().toLowerCase());
 
         MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("entityId", baseEntity.getId());
-        params.addValue("respondentId", baseEntity.getRespondentId());
+        params.addValue("entityId", id);
+        params.addValue("respondentId", respondentId);
         params.addValue("reportDate", sqlReportDate);
 
         List<Map<String, Object>> rows = npJdbcTemplate.queryForList(query, params);
 
         if (rows.size() > 1)
-            throw new IllegalArgumentException(Errors.compose(Errors.E91, baseEntity));
+            throw new IllegalArgumentException(Errors.compose(Errors.E91, baseEntityLoad));
 
         if (rows.size() < 1)
-            throw new IllegalStateException(Errors.compose(Errors.E92, baseEntity));
+            throw new IllegalStateException(Errors.compose(Errors.E92, baseEntityLoad));
 
         Map<String, Object> values = rows.get(0);
-        fillEntityAttributes(values, baseEntity, existingReportDate);
+        fillEntityAttributes(values, baseEntityLoad, existingReportDate);
 
-        return baseEntity;
+        return baseEntityLoad;
     }
 
     /**
@@ -145,7 +145,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                         childBaseEntity.setId(Converter.convertToLong(values.get(attribute.getColumnName())));
                         childBaseEntity.setRespondentId(childMetClass.isDictionary()? 0: baseEntity.getRespondentId());
 
-                        javaValue = loadBaseEntity(childBaseEntity, reportDate, reportDate);
+                        javaValue = loadBaseEntity(childBaseEntity.getId(), childBaseEntity.getRespondentId(), childMetClass, reportDate, reportDate);
                     }
                 } else {
                     if (metaType.isSet()) {
