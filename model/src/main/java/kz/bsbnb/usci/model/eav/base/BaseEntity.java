@@ -135,7 +135,6 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
                 throw new IllegalArgumentException(Errors.compose(Errors.E27, metaClass.getClassName(), expValueClass, valueClass));
         }
 
-        baseValue.setBaseContainer(this);
         baseValue.setMetaAttribute(metaAttribute);
 
         values.put(attribute, baseValue);
@@ -477,7 +476,6 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
                 BaseValue baseValueCloned = baseValue.clone();
 
                 baseValueCloned.setMetaAttribute(getMetaAttribute(attribute));
-                baseValueCloned.setBaseContainer(baseEntityCloned);
                 valuesCloned.put(attribute, baseValueCloned);
             }
 

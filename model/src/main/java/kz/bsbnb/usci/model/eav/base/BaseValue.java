@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 public class BaseValue implements Cloneable {
     private UUID uuid = UUID.randomUUID();
-    private BaseContainer baseContainer;
     private MetaAttribute metaAttribute;
     private Object newValue = null;
     private Object value;
@@ -28,14 +27,6 @@ public class BaseValue implements Cloneable {
 
     public BaseValue(Object value) {
         this.value = value;
-    }
-
-    public BaseContainer getBaseContainer() {
-        return baseContainer;
-    }
-
-    public void setBaseContainer(BaseContainer baseContainer) {
-        this.baseContainer = baseContainer;
     }
 
     public Object getValue() {

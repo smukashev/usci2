@@ -40,8 +40,6 @@ public class BaseSet implements BaseContainer, Cloneable {
         if (baseValue == null)
             throw new IllegalArgumentException("Добавлять в сет пустое значение не допустимо");
 
-        baseValue.setBaseContainer(this);
-
         UUID uuid = UUID.randomUUID();
         put(uuid.toString(), baseValue);
     }
@@ -57,8 +55,6 @@ public class BaseSet implements BaseContainer, Cloneable {
 
         if (baseValue.getValue() instanceof BaseSet)
             throw new UnsupportedOperationException("Не правильное значение множества");
-
-        baseValue.setBaseContainer(this);
 
         values.put(name, baseValue);
     }
@@ -112,7 +108,6 @@ public class BaseSet implements BaseContainer, Cloneable {
             for (String attribute : values.keySet()) {
                 BaseValue baseValue = values.get(attribute);
                 BaseValue baseValueCloned = baseValue.clone();
-                baseValueCloned.setBaseContainer(baseSetCloned);
                 valuesCloned.put(attribute, baseValueCloned);
             }
 
