@@ -123,15 +123,15 @@ public class BaseEntityProcessorTest {
     @Test
     public void applyBaseEntityAdvancedTest() throws SQLException {
         Long respondentId = 2384L;
-        Long batchId = Math.round(Math.random());
-        LocalDate reportDate = LocalDate.of(2018, 2, 1);
+        Long batchId = 5L;
+        LocalDate reportDate = LocalDate.of(2018, 4, 1);
 
         BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
         credit.setOperation(OperType.UPDATE);
 
         BaseEntity creditor = eavDataFactory.createBaseEntity("ref_creditor", reportDate, respondentId, batchId);
-        creditor.setId(245L);
+        creditor.setId(2384L);
         BaseSet creditorDocs = eavDataFactory.createBaseSet("document");
 
         BaseEntity docType = eavDataFactory.createBaseEntity("ref_doc_type", reportDate, 0L, batchId);
@@ -164,7 +164,7 @@ public class BaseEntityProcessorTest {
         creditObject.put("code", new BaseValue("03"));
         credit.put("credit_object", new BaseValue(creditObject));
 
-        credit.put("amount", new BaseValue(100000D));
+        //credit.put("amount", new BaseValue(200000D));
 
         BaseEntity financeSource = eavDataFactory.createBaseEntity("ref_finance_source", reportDate, 0L, batchId);
         financeSource.put("code", new BaseValue("01"));
@@ -184,12 +184,12 @@ public class BaseEntityProcessorTest {
         BaseEntity pledge0 = eavDataFactory.createBaseEntity("pledge", reportDate, respondentId, batchId);
         pledge0.put("contract", new BaseValue("KD0014619/GR1"));
         pledge0.put("pledge_type", new BaseValue(pledgeType18));
-        pledge0.put("value", new BaseValue(99855d));
+        pledge0.put("value", new BaseValue(5d));
 
         BaseEntity pledge1 = eavDataFactory.createBaseEntity("pledge", reportDate, respondentId, batchId);
         pledge1.put("contract", new BaseValue("SD0014619/2"));
         pledge1.put("pledge_type", new BaseValue(pledgeType10));
-        pledge1.put("value", new BaseValue(2d));
+        pledge1.put("value", new BaseValue(6d));
 
         pledges.put(new BaseValue(pledge0));
         pledges.put(new BaseValue(pledge1));

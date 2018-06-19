@@ -26,7 +26,6 @@ public class MetaClass extends Persistable implements MetaType {
     public MetaClass() {
         super();
         this.beginDate = LocalDate.now();
-        //DataUtils.toBeginningOfTheDay(beginDate); TODO:
     }
 
     public MetaClass(long id) {
@@ -37,11 +36,10 @@ public class MetaClass extends Persistable implements MetaType {
     public MetaClass(String className) {
         this.className = className;
         this.beginDate = LocalDate.now();
-        //DataUtils.toBeginningOfTheDay(beginDate); TODO:
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected Object clone() {
         MetaClass meta = new MetaClass();
         
         meta.className = this.className;
@@ -68,9 +66,6 @@ public class MetaClass extends Persistable implements MetaType {
     }
 
     public void setBeginDate(LocalDate beginDate) {
-        //Date newBeginDate = (LocalDate) beginDate.clone();
-        //DataUtils.toBeginningOfTheDay(newBeginDate);
-
         this.beginDate = beginDate;
     }
 
@@ -131,6 +126,18 @@ public class MetaClass extends Persistable implements MetaType {
         searchable = false;
         attributes.clear();
     }
+
+    public boolean isLink() {
+        if (attributes.size() < 1 || attributes.size() > 1)
+            return false;
+
+        MetaAttribute attribute = attributes.values().stream().findFirst().get();
+        MetaType metaType = attribute.getMetaType();
+
+        return metaType.isComplex() && !metaType.isSet() && attribute.isFinal();
+    }
+
+
 
     public Collection<MetaAttribute> getAttributes() {
         return attributes.values();

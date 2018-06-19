@@ -85,14 +85,6 @@ public class MetaAttribute extends Persistable {
         isFinal = aFinal;
     }
 
-    public boolean isImmutable() {
-        return isImmutable;
-    }
-
-    public void setImmutable(boolean isImmutable) {
-        this.isImmutable = isImmutable;
-    }
-
     public String getName() {
         return name;
     }
@@ -123,6 +115,14 @@ public class MetaAttribute extends Persistable {
 
     public void setColumnType(String columnType) {
         this.columnType = columnType;
+    }
+
+    public boolean isImmutable() {
+        return isImmutable;
+    }
+
+    public void setImmutable(boolean immutable) {
+        isImmutable = immutable;
     }
 
     public boolean equals(Object o) {

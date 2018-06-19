@@ -34,7 +34,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
      * само получение сущности из БД означает что все атрибуты тоже будут подхвачены
      * комлексные атрибуты (сеты и сущности) тоже подгружаются но уже каждый отдельным запросом
      * то есть получение сущности из бд влечет получение других зависимых сущностей
-     * см. код BaseEntityApplyService (как данные храненятся в таблицах БД)
+     * см. код BaseEntityStoreService (как данные храненятся в таблицах БД)
      * */
     @Override
     public BaseEntity loadBaseEntity(Long id, Long respondentId, MetaClass metaClass, LocalDate existingReportDate, LocalDate savingReportDate) {
@@ -46,7 +46,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
 
         BaseEntity baseEntityLoad = new BaseEntity(id, metaClass, respondentId);
 
-        java.sql.Date sqlReportDate = Converter.convertToSqlDate(existingReportDate);
+        java.sql.Date sqlReportDate = Converter.convertToSqlDate(savingReportDate);
 
         StringBuilder sb = new StringBuilder("select $tableAlias.ENTITY_ID,\n");
         sb.append("$tableAlias.REPORT_DATE,\n");
@@ -100,7 +100,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
             throw new IllegalStateException(Errors.compose(Errors.E92, baseEntityLoad));
 
         Map<String, Object> values = rows.get(0);
-        fillEntityAttributes(values, baseEntityLoad, existingReportDate);
+        fillEntityAttributes(values, baseEntityLoad, savingReportDate);
 
         return baseEntityLoad;
     }

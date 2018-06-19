@@ -6,9 +6,8 @@ import kz.bsbnb.usci.model.eav.meta.MetaDataType;
 import kz.bsbnb.usci.model.eav.meta.MetaSet;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author BSB
@@ -21,6 +20,7 @@ public class BaseValue implements Cloneable {
     private Object newValue = null;
     private Object value;
     private Boolean changed = Boolean.FALSE;
+    private Boolean mock = Boolean.FALSE;
 
     public BaseValue() {
         /*Пустой конструктор*/
@@ -68,6 +68,22 @@ public class BaseValue implements Cloneable {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public Boolean isChanged() {
+        return changed;
+    }
+
+    public void setChanged(Boolean changed) {
+        this.changed = changed;
+    }
+
+    public Boolean getMock() {
+        return mock;
+    }
+
+    public void setMock(Boolean mock) {
+        this.mock = mock;
     }
 
     @Override
@@ -132,17 +148,16 @@ public class BaseValue implements Cloneable {
                 BaseSet thisBaseSet = (BaseSet) thisValue;
                 BaseSet thatBaseSet = (BaseSet) thatValue;
 
-                Set<Long> thisIds = new HashSet<>();
-                for (BaseValue thisChildBaseValue : thisBaseSet.getValues()) {
-                    BaseEntity thisBaseEntity = (BaseEntity) thisChildBaseValue.getValue();
-                    thisIds.add(thisBaseEntity.getId());
-                }
+                List<Long> thisIds = thisBaseSet.getValues().stream()
+                        .map(childBaseValue -> ((BaseEntity) childBaseValue.getValue()).getId())
+                        .collect(Collectors.toList());
 
-                Set<Long> thatIds = new HashSet<>();
-                for (BaseValue thatChildBaseValue : thatBaseSet.getValues()) {
-                    BaseEntity thatBaseEntity = (BaseEntity) thatChildBaseValue.getValue();
-                    thatIds.add(thatBaseEntity.getId());
-                }
+                List<Long> thatIds = thatBaseSet.getValues().stream()
+                        .map(childBaseValue -> ((BaseEntity) childBaseValue.getValue()).getId())
+                        .collect(Collectors.toList());
+
+                Collections.sort(thisIds);
+                Collections.sort(thatIds);
 
                 return thisIds.equals(thatIds);
             } else {
@@ -163,9 +178,8 @@ public class BaseValue implements Cloneable {
                 for (BaseValue thisBaseValue : thisBaseSet.getValues()) {
                     baseValueNotFound = true;
                     for (BaseValue thatBaseValue : thatBaseSet.getValues()) {
-                        if (processedUuids.contains(thatBaseValue.getUuid())) {
+                        if (processedUuids.contains(thatBaseValue.getUuid()))
                             continue;
-                        }
 
                         if (thisBaseValue.equalsByValue(childMetaType, thatBaseValue)) {
                             processedUuids.add(thatBaseValue.getUuid());
@@ -174,9 +188,8 @@ public class BaseValue implements Cloneable {
                         }
                     }
 
-                    if (baseValueNotFound) {
+                    if (baseValueNotFound)
                         return false;
-                    }
                 }
 
                 return true;
@@ -184,14 +197,6 @@ public class BaseValue implements Cloneable {
                 return thisValue.equals(thatValue);
             }
         }
-    }
-
-    public Boolean isChanged() {
-        return changed;
-    }
-
-    public void setChanged(Boolean changed) {
-        this.changed = changed;
     }
 
     @Override

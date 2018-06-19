@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 @Service
 public class EavHubServiceImpl implements EavHubService {
+    private final static char KEY_SEPARATOR = '~';
     private DateTimeFormatter HUB_KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private final EavHubDao eavHubDao;
 
@@ -51,8 +52,6 @@ public class EavHubServiceImpl implements EavHubService {
                 if (baseValue == null || baseValue.getValue() == null)
                     throw new IllegalArgumentException(Errors.compose(Errors.E188));
 
-                //TODO: пока не известно нужны ли сеты
-                //TODO: добавить ошибку в Errors
                 if (metaType.isSet())
                     throw new IllegalArgumentException("Сеты в качестве ключевых полей в EAV_HUB не поддерживатюся");
 
@@ -61,7 +60,6 @@ public class EavHubServiceImpl implements EavHubService {
                 if (metaType.isComplex()) {
                     BaseEntity childBaseEntity = (BaseEntity) baseValue.getValue();
 
-                    //TODO: добавить ошибку в Errors
                     if (childBaseEntity.getId() == 0)
                         throw new IllegalArgumentException("Ключевому поле сущности не присвоено id");
 
@@ -82,7 +80,7 @@ public class EavHubServiceImpl implements EavHubService {
 
 
                 if (sb.length() > 0)
-                    sb.append(Errors.SEPARATOR);
+                    sb.append(KEY_SEPARATOR);
 
                 sb.append(key);
             });

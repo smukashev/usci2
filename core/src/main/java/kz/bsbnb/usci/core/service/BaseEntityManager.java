@@ -13,6 +13,7 @@ public class BaseEntityManager {
     private List<BaseEntity> insertedEntities = new ArrayList<>();
     private List<BaseEntity> updatedEntities = new ArrayList<>();
     private List<BaseEntity> newHistoryEntities = new ArrayList<>();
+    private List<BaseEntity> shiftEntities = new ArrayList<>();
     private Map<String, List<BaseEntity>> deletedEntities = new HashMap<>();
     private Map<String, List<BaseEntity>> processedEntities = new HashMap<>();
 
@@ -50,6 +51,13 @@ public class BaseEntityManager {
             throw new RuntimeException(Errors.compose(Errors.E54));
 
         newHistoryEntities.add(newHistory);
+    }
+
+    public void registerAsShift(BaseEntity shiftedEntity) {
+        if (shiftedEntity == null)
+            throw new RuntimeException(Errors.compose(Errors.E54));
+
+        shiftEntities.add(shiftedEntity);
     }
 
     public void registerAsDeleted(BaseEntity deletedEntity) {
@@ -113,6 +121,10 @@ public class BaseEntityManager {
 
     public List<BaseEntity> getUpdatedEntities() {
         return updatedEntities;
+    }
+
+    public List<BaseEntity> getShiftEntities() {
+        return shiftEntities;
     }
 
     public void saveBaseEntitySavingAppliedPair(BaseEntity baseEntitySaving, BaseEntity baseEntityApplied) {

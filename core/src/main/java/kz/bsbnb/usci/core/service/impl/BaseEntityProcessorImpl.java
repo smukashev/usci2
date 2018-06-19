@@ -21,11 +21,11 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityProcessorImpl.class);
 
     private final EavHubService eavHubService;
-    private final BaseEntityApplyService baseEntityApplyService;
+    private final BaseEntityStoreService baseEntityStoreService;
 
-    public BaseEntityProcessorImpl(EavHubService eavHubService, BaseEntityApplyService baseEntityApplyService) {
+    public BaseEntityProcessorImpl(EavHubService eavHubService, BaseEntityStoreService baseEntityStoreService) {
         this.eavHubService = eavHubService;
-        this.baseEntityApplyService = baseEntityApplyService;
+        this.baseEntityStoreService = baseEntityStoreService;
     }
 
     @Override
@@ -52,23 +52,22 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
                 if (baseEntityPrepared.getId() != null)
                     throw new UsciException(Errors.compose(Errors.E196, baseEntityPrepared.getId()));
 
-                baseEntityApplied = baseEntityApplyService.apply(baseEntitySaving.getRespondentId(), baseEntityPrepared, null, baseEntityManager);
-
-                //TODO: добавить проверку бизнес правил
-                baseEntityApplyService.applyToDb(baseEntityManager);
+                baseEntityApplied = baseEntityStoreService.processBaseEntity(baseEntityPrepared, null, baseEntityManager);
+                baseEntityStoreService.processBaseManager(baseEntityManager);
 
                 // заливаем данные непосредственно в схему EAV_XML
-                baseEntityApplyService.applyToSchemaEavXml(baseEntityPrepared);
+                baseEntityStoreService.storeBaseEntityToSchemaEavXml(baseEntityPrepared);
 
                 break;
             case UPDATE:
                 if (baseEntityPrepared.getId() == null)
                     throw new UsciException(Errors.compose(Errors.E198));
 
-                baseEntityApplied = baseEntityApplyService.apply(baseEntitySaving.getRespondentId(), baseEntityPrepared, null, baseEntityManager);
+                baseEntityApplied = baseEntityStoreService.processBaseEntity(baseEntityPrepared, null, baseEntityManager);
+                baseEntityStoreService.processBaseManager(baseEntityManager);
 
-                //TODO: добавить проверку бизнес правил
-                baseEntityApplyService.applyToDb(baseEntityManager);
+                // заливаем данные непосредственно в схему EAV_XML
+                baseEntityStoreService.storeBaseEntityToSchemaEavXml(baseEntityPrepared);
 
                 break;
             case DELETE:

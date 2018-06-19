@@ -21,6 +21,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
     private UUID uuid = UUID.randomUUID();
     private MetaClass metaClass;
     private LocalDate reportDate;
+    private LocalDate oldReportDate;
     private Long respondentId;
     private Long batchId;
     private OperType operType;
@@ -49,12 +50,36 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         this.batchId = batchId;
     }
 
+    public BaseEntity(long id, MetaClass metaClass, LocalDate reportDate, Long respondentId, Long batchId) {
+        super(id);
+        this.metaClass = metaClass;
+        this.reportDate = reportDate;
+        this.respondentId = respondentId;
+        this.batchId = batchId;
+    }
+
     public LocalDate getReportDate() {
         return reportDate;
     }
 
     public void setReportDate(LocalDate reportDate) {
         this.reportDate = reportDate;
+    }
+
+    public LocalDate getOldReportDate() {
+        return oldReportDate;
+    }
+
+    public void setOldReportDate(LocalDate oldReportDate) {
+        this.oldReportDate = oldReportDate;
+    }
+
+    public OperType getOperType() {
+        return operType;
+    }
+
+    public void setOperType(OperType operType) {
+        this.operType = operType;
     }
 
     public OperType getOperation() {
@@ -546,12 +571,28 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         return values.size();
     }
 
-    private class Parent implements Serializable {
+    public class Parent implements Serializable {
         private BaseEntity entity;
         private MetaAttribute attribute;
 
         public Parent(BaseEntity entity, MetaAttribute attribute) {
             this.entity = entity;
+            this.attribute = attribute;
+        }
+
+        public BaseEntity getEntity() {
+            return entity;
+        }
+
+        public void setEntity(BaseEntity entity) {
+            this.entity = entity;
+        }
+
+        public MetaAttribute getAttribute() {
+            return attribute;
+        }
+
+        public void setAttribute(MetaAttribute attribute) {
             this.attribute = attribute;
         }
 
