@@ -12,7 +12,6 @@ import kz.bsbnb.usci.model.eav.meta.MetaValue;
  */
 
 public class BaseSet implements BaseContainer, Cloneable {
-    private UUID uuid = UUID.randomUUID();
     private MetaType metaType;
 
     // использование HashMap вместе HashSet сделано преднамеренно

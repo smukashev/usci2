@@ -48,8 +48,15 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * метод диспетчер отвечает за обработку сущности и выполняет:
+     * новые сущности непосредственно отправляет на обработку
+     * если сущность существует то предварительно подгружает ее из БД и потом отправляет на обработку
+     * предварительно загружать сущность из БД нужно чтобы делать сверку с данными которые прислали
+     * алгоритм обработки существующей сущности см. в методе processExistingBaseEntity
+     * */
     @Override
-    public BaseEntity processBaseEntity(final BaseEntity baseEntitySaving, BaseEntity baseEntityLoaded, BaseEntityManager baseEntityManager) {
+    public BaseEntity processBaseEntity(final BaseEntity baseEntitySaving, BaseEntity baseEntityLoaded, final BaseEntityManager baseEntityManager) {
         BaseEntity baseEntityApplied;
 
         if (baseEntitySaving.getId() == null)
@@ -79,8 +86,6 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
             baseEntityApplied = processExistingBaseEntity(null, baseEntitySaving, baseEntityLoaded, baseEntityManager);
         }
 
-        baseEntityApplied.setOperation(baseEntitySaving.getOperation());
-
         return baseEntityApplied;
     }
 
@@ -88,40 +93,42 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * метод выполняет DML операций в БД
      * - создает запись по новой сущности
      * - изменяет историю по существующим сущностям
-     * - добавленяет историю по существующим сущностям
-     * - сдвигает отчетную дату назад (изменение отчетной даты когда прислалу сущность задней датой и по ней нет никаких изменений)
+     * - добавляет историю по существующим сущностям
+     * - сдвигает отчетную дату назад (изменение отчетной даты когда прислали сущность задней датой и по ней нет никаких изменений)
      * - удаляет сущность
      * */
     @Override
     public void processBaseManager(BaseEntityManager baseEntityManager) {
-        if (baseEntityManager.getInsertedEntities().size() > 0) {
-            for (BaseEntity baseEntity : baseEntityManager.getInsertedEntities()) {
-                baseEntity = eavHubService.insert(baseEntity);
+        for (BaseEntity baseEntity : baseEntityManager.getInsertedEntities()) {
+            baseEntity = eavHubService.insert(baseEntity);
 
-                insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
+            insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
 
-                // необходимо присвоить id сущности которая затем инсертится в схему EAV_XML
-                BaseEntity baseEntitySaving = baseEntityManager.getBaseEntityPairs().get(baseEntity.getUuid().toString());
-                baseEntitySaving.setId(baseEntity.getId());
-            }
+            // необходимо присвоить id сущности которая затем инсертится в схему EAV_XML
+            BaseEntity baseEntitySaving = baseEntityManager.getBaseEntityPairs().get(baseEntity.getUuid().toString());
+            baseEntitySaving.setId(baseEntity.getId());
         }
 
-        if (baseEntityManager.getNewHistoryEntities().size() > 0) {
-            for (BaseEntity baseEntity : baseEntityManager.getNewHistoryEntities())
-                insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
-        }
+        for (BaseEntity baseEntity : baseEntityManager.getNewHistoryEntities())
+            insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
 
-        if (baseEntityManager.getUpdatedEntities().size() > 0) {
-            for (BaseEntity baseEntity : baseEntityManager.getUpdatedEntities())
-                updateBaseEntityInDb(baseEntity, false);
-        }
+        for (BaseEntity baseEntity : baseEntityManager.getUpdatedEntities())
+            updateBaseEntityInDb(baseEntity, false);
 
-        if (baseEntityManager.getShiftEntities().size() > 0) {
-            for (BaseEntity baseEntity : baseEntityManager.getShiftEntities())
-                updateBaseEntityInDb(baseEntity, true);
-        }
+        for (BaseEntity baseEntity : baseEntityManager.getShiftEntities())
+            updateBaseEntityInDb(baseEntity, true);
     }
 
+
+    /**
+     * метод занимается обработкой новых сущностей (то есть тех которыех нет в БД):
+     * - создаем новую сущность из реквизитов сущности из парсера.
+     * - комплексные сеты: создаем новый сет для манипуляций с ним
+     *   каждую сущность сета отправляем на обработку, затем добавляем его в новый сет
+     *  - примитивный сет: создаем новый сет из реквизитов сета из парсера, затем мигрируем значения из сета от парсера в новый сет
+     * - комплексный скаляр: отправляем атрибут на обработку, затем ложим его в новую сущность
+     * - примитивный скаляр: просто ложим значение в новую сущность
+     * */
     private BaseEntity processNewBaseEntity(BaseEntity baseEntitySaving, BaseEntityManager baseEntityManager) {
         BaseEntity foundProcessedBaseEntity = baseEntityManager.getProcessed(baseEntitySaving);
         if (foundProcessedBaseEntity != null)
@@ -129,8 +136,6 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
         if (baseEntitySaving.getId() != null)
             throw new IllegalArgumentException("Метод обрабатывает только новые сущности");
-
-        MetaClass metaClass = baseEntitySaving.getMetaClass();
 
         BaseEntity baseEntityApplied = new BaseEntity(baseEntitySaving.getMetaClass(), baseEntitySaving.getReportDate(), baseEntitySaving.getRespondentId(), baseEntitySaving.getBatchId());
         baseEntityApplied.setParent(baseEntitySaving.getParent().getEntity(), baseEntitySaving.getParent().getAttribute());
@@ -205,6 +210,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         return baseEntityApplied;
     }
 
+    //TODO: добавить обработку изменения ключевых атрибутов
     private BaseEntity processExistingBaseEntity(MetaAttribute baseAttribute, BaseEntity baseEntitySaving, BaseEntity baseEntityLoaded, BaseEntityManager baseEntityManager) {
         BaseEntity foundProcessedBaseEntity = baseEntityManager.getProcessed(baseEntitySaving);
         if (foundProcessedBaseEntity != null)
@@ -246,6 +252,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
             BaseValue baseValueSaving = baseEntitySaving.getBaseValue(attrName);
             BaseValue baseValueLoaded = baseEntityLoaded.getBaseValue(attrName);
 
+            // если по атрибуту не было и нет значения то и делать дальше нечего, просто игнорируем
             if (baseValueLoaded == null && baseValueSaving == null)
                 continue;
 
@@ -267,10 +274,12 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
                 else
                     processComplexValue(baseEntitySaving, baseEntityApplied, baseValueSaving, baseValueLoaded, baseEntityManager);
             } else {
-                if (metaType.isSet())
-                    processSimpleSet(baseValueSaving, baseValueLoaded);
+                if (metaType.isSet()) {
+                    BaseSet childBaseSetApplied = processSimpleSet(baseValueSaving, baseValueLoaded);
+                    baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseSetApplied));
+                }
                 else
-                    processSimpleValue(metaAttribute, baseEntityApplied, baseEntityLoaded, baseValueSaving, baseValueLoaded, baseEntityManager);
+                    processSimpleValue(metaAttribute, baseEntityApplied, baseEntityLoaded, baseValueSaving, baseValueLoaded);
             }
         }
 
@@ -303,6 +312,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * */
     private boolean markBaseEntityChanges(final BaseEntity baseEntityApplied, final BaseEntity baseEntityLoaded) {
         boolean changed = false;
+
         for (String attrName : baseEntityApplied.getAttributeNames()) {
             BaseValue childBaseValueLoaded = baseEntityLoaded.getBaseValue(attrName);
             BaseValue childBaseValueApplied = baseEntityApplied.getBaseValue(attrName);
@@ -323,8 +333,8 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
     //TODO: не полностью реализован
     //TODO: черновой вариант
-    private void processSimpleValue(MetaAttribute metaAttribute, BaseEntity baseEntityApplied, BaseEntity baseEntityLoaded, BaseValue baseValueSaving,
-                                    BaseValue baseValueLoaded, BaseEntityManager baseEntityManager) {
+    private void processSimpleValue(MetaAttribute metaAttribute, BaseEntity baseEntityApplied, BaseEntity baseEntityLoaded,
+                                    BaseValue baseValueSaving, BaseValue baseValueLoaded) {
         MetaClass metaClass = baseEntityApplied.getMetaClass();
 
         MetaType metaType = metaAttribute.getMetaType();
@@ -677,6 +687,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         fixedColumns.append("BATCH_ID = :BATCH_ID\n");
 
         StringBuilder varColumns = new StringBuilder();
+
         if (!shiftReportDate) {
             for (String attrName : baseEntitySaving.getAttributeNames()) {
                 MetaAttribute metaAttribute = baseEntitySaving.getMetaAttribute(attrName);
@@ -728,37 +739,39 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * для скалярных примитивных значений берем само значение привиденное к jdbc
      * */
     private Object convertBaseValueToRelModel(final String schema, final MetaAttribute metaAttribute, final BaseValue baseValue) {
-        try {
-            MetaType metaType = metaAttribute.getMetaType();
+        MetaType metaType = metaAttribute.getMetaType();
 
-            Object value;
-            if (metaType.isSet()) {
-                Object array;
-                BaseSet childBaseSet = (BaseSet) baseValue.getValue();
-                if (metaType.isComplex())
-                    array = new ArrayList<>(childBaseSet.getValues().stream()
-                            .map(childBaseValue -> ((BaseEntity) childBaseValue.getValue()).getId())
-                            .collect(Collectors.toSet())).toArray();
-                else
-                    array = new ArrayList<>(childBaseSet.getValues().stream()
-                            .map(childBaseValue -> ((BaseValue) childBaseValue.getValue()).getValue())
-                            .collect(Collectors.toSet())).toArray();
+        Object value;
+        if (metaType.isSet()) {
+            Object array;
+            BaseSet childBaseSet = (BaseSet) baseValue.getValue();
+            if (metaType.isComplex())
+                array = childBaseSet.getValues().stream()
+                        .map(childBaseValue -> ((BaseEntity) childBaseValue.getValue()).getId())
+                        .distinct().toArray();
+            else
+                array = childBaseSet.getValues().stream()
+                        .map(childBaseValue -> ((BaseValue) childBaseValue.getValue()).getValue())
+                        .distinct().toArray();
 
+            try {
                 // особенность Oracle, для создания массива обязательно пользоваться createARRAY а не createArrayOf
                 // также необходимо получить соединение с базой spring утилитой иначе получим только прокси обьект
                 Connection conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
                 OracleConnection oraConn = conn.unwrap(OracleConnection.class);
 
                 value = oraConn.createARRAY(String.join(".", schema, metaAttribute.getColumnType()), array);
-            } else if (metaType.isComplex())
-                value = ((BaseEntity) baseValue.getValue()).getId();
-            else
-                value = MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), baseValue.getValue());
+            } catch (SQLException e) {
+                // ловим exception и конвертируем в unchecked чтобы везде не добавлять try catch
+                throw new UsciException(e.getMessage());
+            }
+        } else if (metaType.isComplex())
+            value = ((BaseEntity) baseValue.getValue()).getId();
+        else
+            value = MetaDataType.convertToRmValue(((MetaValue) metaAttribute.getMetaType()).getMetaDataType(), baseValue.getValue());
 
-            return value;
-        } catch (SQLException e) {
-            throw new UsciException(e.getMessage());
-        }
+        return value;
+
     }
 
 }

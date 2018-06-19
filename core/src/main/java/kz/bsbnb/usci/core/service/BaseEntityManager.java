@@ -9,7 +9,6 @@ import java.util.*;
 public class BaseEntityManager {
     private Long respondentId;
 
-    private List<BaseEntity> hubs = new ArrayList<>();
     private List<BaseEntity> insertedEntities = new ArrayList<>();
     private List<BaseEntity> updatedEntities = new ArrayList<>();
     private List<BaseEntity> newHistoryEntities = new ArrayList<>();
@@ -82,10 +81,6 @@ public class BaseEntityManager {
 
         entityList.add(processedBaseEntity);
         processedEntities.put(processedBaseEntity.getMetaClass().getClassName(), entityList);
-    }
-
-    public void addOptimizerEntity(BaseEntity entity) {
-        hubs.add(entity);
     }
 
     public BaseEntity getProcessed(BaseEntity baseEntity) {
