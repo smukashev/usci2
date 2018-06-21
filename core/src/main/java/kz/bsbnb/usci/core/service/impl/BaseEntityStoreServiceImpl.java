@@ -1,10 +1,9 @@
 package kz.bsbnb.usci.core.service.impl;
 
-import kz.bsbnb.usci.core.model.EavDbSchema;
+import kz.bsbnb.usci.core.model.EavSchema;
 import kz.bsbnb.usci.core.service.*;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.UsciException;
-import kz.bsbnb.usci.model.eav.base.BaseContainer;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseSet;
 import kz.bsbnb.usci.model.eav.base.BaseValue;
@@ -13,6 +12,7 @@ import kz.bsbnb.usci.util.Converter;
 import oracle.jdbc.driver.OracleConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -57,9 +57,10 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * */
     @Override
     public BaseEntity processBaseEntity(final BaseEntity baseEntitySaving, BaseEntity baseEntityLoaded, final BaseEntityManager baseEntityManager) {
+        MetaClass metaClass = baseEntitySaving.getMetaClass();
         BaseEntity baseEntityApplied;
 
-        if (baseEntitySaving.getId() == null)
+        if (baseEntitySaving.getId() == null || !metaClass.isSearchable())
             baseEntityApplied = processNewBaseEntity(baseEntitySaving, baseEntityManager);
         else {
             if (baseEntityLoaded == null) {
@@ -94,23 +95,37 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * - создает запись по новой сущности
      * - изменяет историю по существующим сущностям
      * - добавляет историю по существующим сущностям
-     * - сдвигает отчетную дату назад (изменение отчетной даты когда прислали сущность задней датой и по ней нет никаких изменений)
+     * - сдвигает отчетную дату назад (изменение отчетной даты когда прислали сущность задней датой но по ней нет никаких изменений)
      * - удаляет сущность
      * */
     @Override
-    public void processBaseManager(BaseEntityManager baseEntityManager) {
+    public void storeBaseManager(BaseEntityManager baseEntityManager) {
         for (BaseEntity baseEntity : baseEntityManager.getInsertedEntities()) {
-            baseEntity = eavHubService.insert(baseEntity);
 
-            insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
+            // final сущности переиспользуют ранее присвоенный id
+            if (baseEntity.getId() == null) {
+                // присваиваем id для новых сущностей
+                Long newId = jdbcTemplate.queryForObject("select EAV_DATA.SEQ_EAV_BE_ENTITIES.NEXTVAL from dual", Long.class);
+                baseEntity.setId(newId);
+            }
 
             // необходимо присвоить id сущности которая затем инсертится в схему EAV_XML
-            BaseEntity baseEntitySaving = baseEntityManager.getBaseEntityPairs().get(baseEntity.getUuid().toString());
-            baseEntitySaving.setId(baseEntity.getId());
+            BaseEntity baseEntityXml = baseEntityManager.getBaseEntityPairs().get(baseEntity.getUuid().toString());
+            baseEntityXml.setId(baseEntity.getId());
+        }
+
+        for (BaseEntity baseEntity : baseEntityManager.getInsertedEntities()) {
+            MetaClass metaClass = baseEntity.getMetaClass();
+
+            // если мета класс имеет ключевые поля то загружаем его в hub иначе ему там нечего появлятся
+            if (metaClass.isSearchable())
+                eavHubService.insert(baseEntity);
+
+            insertBaseEntityToDb(EavSchema.EAV_DATA, baseEntity);
         }
 
         for (BaseEntity baseEntity : baseEntityManager.getNewHistoryEntities())
-            insertBaseEntityToDb(EavDbSchema.EAV_DATA, baseEntity);
+            insertBaseEntityToDb(EavSchema.EAV_DATA, baseEntity);
 
         for (BaseEntity baseEntity : baseEntityManager.getUpdatedEntities())
             updateBaseEntityInDb(baseEntity, false);
@@ -134,11 +149,10 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         if (foundProcessedBaseEntity != null)
             return foundProcessedBaseEntity;
 
-        if (baseEntitySaving.getId() != null)
-            throw new IllegalArgumentException("Метод обрабатывает только новые сущности");
-
-        BaseEntity baseEntityApplied = new BaseEntity(baseEntitySaving.getMetaClass(), baseEntitySaving.getReportDate(), baseEntitySaving.getRespondentId(), baseEntitySaving.getBatchId());
-        baseEntityApplied.setParent(baseEntitySaving.getParent().getEntity(), baseEntitySaving.getParent().getAttribute());
+        BaseEntity baseEntityApplied = new BaseEntity(baseEntitySaving.getId(), baseEntitySaving.getMetaClass(),
+                baseEntitySaving.getRespondentId(), baseEntitySaving.getReportDate(), baseEntitySaving.getBatchId());
+        if (baseEntitySaving.getParent() != null)
+            baseEntityApplied.setParent(baseEntitySaving.getParent().getEntity(), baseEntitySaving.getParent().getAttribute());
 
         for (String attrName : baseEntitySaving.getAttributeNames()) {
             BaseValue baseValueSaving = baseEntitySaving.getBaseValue(attrName);
@@ -235,7 +249,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
         // создаем новый обьект чтобы потом все изменения выполнять над ним
         BaseEntity baseEntityApplied = new BaseEntity(baseEntitySaving.getId(), baseEntityLoaded.getMetaClass(),
-                baseEntitySaving.getReportDate(), baseEntitySaving.getRespondentId(), baseEntitySaving.getBatchId());
+                baseEntitySaving.getRespondentId(), baseEntitySaving.getReportDate(), baseEntitySaving.getBatchId());
         baseEntityApplied.setOperation(baseEntitySaving.getOperation());
 
         if (baseEntitySaving.getParent() != null)
@@ -256,11 +270,11 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
             if (baseValueLoaded == null && baseValueSaving == null)
                 continue;
 
-            final MetaAttribute metaAttribute = metaClass.getMetaAttribute(attrName);
-            final MetaType metaType = metaAttribute.getMetaType();
+            final MetaAttribute attribute = metaClass.getMetaAttribute(attrName);
+            final MetaType metaType = attribute.getMetaType();
 
             // обогащаем сущность: если атрибут не пришел в xml но у нас есть значение ранее подгруженное
-            if (baseValueSaving == null && baseValueLoaded != null && !metaAttribute.isFinal())
+            if (baseValueSaving == null && baseValueLoaded != null && !attribute.isFinal())
                 baseEntityApplied.put(attrName, baseValueLoaded);
 
             if (baseValueSaving == null)
@@ -268,18 +282,18 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
             if (metaType.isComplex()) {
                 if (metaType.isSet()) {
-                    BaseSet childBaseSetApplied = processComplexSet(metaAttribute, baseValueSaving, baseValueLoaded, baseEntityManager);
-                    baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseSetApplied));
+                    BaseSet childBaseSetApplied = processComplexSet(attribute, baseValueSaving, baseValueLoaded, baseEntityManager);
+                    baseEntityApplied.put(attribute.getName(), new BaseValue(childBaseSetApplied));
                 }
                 else
-                    processComplexValue(baseEntitySaving, baseEntityApplied, baseValueSaving, baseValueLoaded, baseEntityManager);
+                    processComplexValue(attribute, baseEntityApplied, baseEntityLoaded, baseValueSaving, baseValueLoaded, baseEntityManager);
             } else {
                 if (metaType.isSet()) {
-                    BaseSet childBaseSetApplied = processSimpleSet(baseValueSaving, baseValueLoaded);
-                    baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseSetApplied));
+                    BaseSet childBaseSetApplied = processSimpleSet(attribute, baseValueSaving, baseValueLoaded);
+                    baseEntityApplied.put(attribute.getName(), new BaseValue(childBaseSetApplied));
                 }
                 else
-                    processSimpleValue(metaAttribute, baseEntityApplied, baseEntityLoaded, baseValueSaving, baseValueLoaded);
+                    processSimpleValue(attribute, baseEntityApplied, baseValueSaving, baseValueLoaded);
             }
         }
 
@@ -331,128 +345,95 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         return changed;
     }
 
-    //TODO: не полностью реализован
-    //TODO: черновой вариант
-    private void processSimpleValue(MetaAttribute metaAttribute, BaseEntity baseEntityApplied, BaseEntity baseEntityLoaded,
-                                    BaseValue baseValueSaving, BaseValue baseValueLoaded) {
-        MetaClass metaClass = baseEntityApplied.getMetaClass();
-
-        MetaType metaType = metaAttribute.getMetaType();
-        MetaValue metaValue = (MetaValue) metaType;
-
-        // TODO: изменение ключевых полей
-
-        LocalDate reportDateLoaded = baseEntityLoaded.getReportDate();
-        LocalDate reportDateSaving = baseEntityApplied.getReportDate();
-
-        int compareDates = reportDateSaving.compareTo(reportDateLoaded);
-
-        if (baseValueLoaded != null) {
-            if (baseValueSaving == null) {
-                // в случае если атрибут не пришел в теге но за другой период у нас есть значение
-                // обогащаем сущность другим значением
-                if (!metaAttribute.isFinal() && compareDates > 0)
-                    baseEntityApplied.put(metaAttribute.getName(), new BaseValue(baseValueLoaded.getValue()));
-            }
-            else {
-                // если ранее было значение и теперь пришло новое значение то просто заменяем новым
-                baseEntityApplied.put(metaAttribute.getName(), new BaseValue(baseValueSaving.getValue()));
-            }
-        }
-        else {
-            if (baseValueSaving != null)
-                baseEntityApplied.put(metaAttribute.getName(), new BaseValue(baseValueSaving.getValue()));
-        }
+    //TODO: test keys
+    private void processSimpleValue(MetaAttribute attribute, BaseEntity baseEntityApplied, BaseValue baseValueSaving, BaseValue baseValueLoaded) {
+        // в случае если атрибут не пришел в теге но ранее у нас было значение, обогащаем сущность другим значением
+        if (baseValueLoaded != null && baseValueSaving == null)
+            baseEntityApplied.put(attribute.getName(), new BaseValue(baseValueLoaded.getValue()));
+        else if (baseValueSaving != null)
+            baseEntityApplied.put(attribute.getName(), new BaseValue(baseValueSaving.getValue()));
     }
 
-    private void processComplexValue(BaseEntity baseEntitySaving, BaseEntity baseEntityApplied, BaseValue baseValueSaving,
+    //TODO: черновой вариант
+    private void processComplexValue(MetaAttribute metaAttribute, BaseEntity baseEntityApplied, BaseEntity baseEntityLoaded, BaseValue baseValueSaving,
                                      BaseValue baseValueLoaded, BaseEntityManager baseEntityManager) {
-        MetaAttribute metaAttribute = baseValueSaving.getMetaAttribute();
-        MetaClass metaClass = baseEntityApplied.getMetaClass();
-
         BaseEntity childBaseEntityLoaded = null;
-        if (baseValueLoaded != null)
+        if (baseValueLoaded != null && baseValueLoaded.getValue() != null)
             childBaseEntityLoaded = (BaseEntity) baseValueLoaded.getValue();
 
         BaseEntity childBaseEntitySaving = null;
-        if (baseValueSaving != null)
+        if (baseValueSaving != null && baseValueSaving.getValue() != null)
             childBaseEntitySaving = (BaseEntity) baseValueSaving.getValue();
 
-        if (metaAttribute.isImmutable() && childBaseEntitySaving.getId() == null)
+        if (metaAttribute.isImmutable() && childBaseEntitySaving != null && childBaseEntitySaving.getId() == null)
             throw new IllegalStateException(Errors.compose(Errors.E23, childBaseEntitySaving));
 
         if (metaAttribute.isImmutable()) {
-            baseEntityApplied.put(metaAttribute.getName(), baseValueSaving);
+            //TODO: возможно необходимо заново подгружать обьект
+            baseEntityApplied.put(metaAttribute.getName(), baseValueSaving != null? baseValueSaving: new BaseValue());
             return;
         }
 
-        LocalDate reportDateLoaded = childBaseEntityLoaded.getReportDate();
-        LocalDate reportDateSaving = baseEntityApplied.getReportDate();
-
-        int compareDates = reportDateSaving.compareTo(reportDateLoaded);
-
         BaseEntity childBaseEntityApplied = null;
-        if (baseValueSaving != null && baseValueSaving.getValue() != null) {
-            // TODO: возможно необходимо вызывать processExistingBaseEntity
-            childBaseEntityApplied = processBaseEntity(childBaseEntitySaving, null, baseEntityManager);
+        if (childBaseEntitySaving != null && childBaseEntityLoaded != null && !childBaseEntityLoaded.isMock())
+            childBaseEntityApplied = processExistingBaseEntity(metaAttribute, childBaseEntitySaving, childBaseEntityLoaded, baseEntityManager);
+        else if (childBaseEntitySaving != null) {
+            if (childBaseEntityLoaded != null && childBaseEntityLoaded.isMock())
+                childBaseEntitySaving.setId(childBaseEntityLoaded.getId());
+
+            childBaseEntityApplied = processBaseEntity(childBaseEntitySaving,
+                    childBaseEntityLoaded == null || childBaseEntityLoaded.isMock()? null: childBaseEntityLoaded, baseEntityManager);
         }
 
-        if (baseValueLoaded != null) {
-            if (baseValueSaving == null) {
-                // в случае если атрибут не пришел в теге но за другой период у нас есть значение
-                // обогащаем сущность другим значением
-                if (!metaAttribute.isFinal() && compareDates > 0) {
-                    baseEntityApplied.put(metaAttribute.getName(), new BaseValue(baseValueLoaded.getValue()));
-                }
-            }
-            else {
-                // если ранее было значение и теперь пришло новое значение то просто заменяем новым
-                baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseEntityApplied));
-            }
-        }
-        // если ранее у сущности не было значения по атрибуту
-        else {
-            if (baseValueSaving != null)
-                baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseEntityApplied));
-        }
+        if (baseValueLoaded != null && baseValueSaving == null)
+            baseEntityApplied.put(metaAttribute.getName(), new BaseValue(baseValueLoaded.getValue()));
+        else if (baseValueSaving != null)
+            baseEntityApplied.put(metaAttribute.getName(), new BaseValue(childBaseEntityApplied));
     }
 
-    private BaseSet processSimpleSet(BaseValue baseValueSaving, BaseValue baseValueLoaded) {
-        MetaAttribute metaAttribute = baseValueSaving.getMetaAttribute();
+    //TODO: черновой вариант
+    //TODO: test
+    private BaseSet processSimpleSet(MetaAttribute metaAttribute, BaseValue baseValueSaving, BaseValue baseValueLoaded) {
         MetaType metaType = metaAttribute.getMetaType();
-
         MetaSet childMetaSet = (MetaSet) metaType;
-        MetaType childMetaType = childMetaSet.getMetaType();
-        MetaClass childMetaClass = (MetaClass) childMetaType;
 
-        BaseSet childBaseSetSaving = (BaseSet) baseValueSaving.getValue();
+        BaseSet childBaseSetApplied = new BaseSet(childMetaSet.getMetaType());
+        if (baseValueLoaded != null && baseValueSaving == null) {
+            childBaseSetApplied.put(baseValueLoaded);
+            return childBaseSetApplied;
+        }
+
+        BaseSet childBaseSetSaving = null;
+        if (baseValueSaving != null && baseValueSaving.getValue() != null)
+            childBaseSetSaving = (BaseSet) baseValueSaving.getValue();
+
         BaseSet childBaseSetLoaded = null;
         if (baseValueLoaded != null && baseValueLoaded.getValue() != null)
             childBaseSetLoaded = (BaseSet) baseValueLoaded.getValue();
 
-        BaseSet childBaseSetApplied = new BaseSet(childMetaClass);
-
         Set<UUID> processedUUIds = new HashSet<>();
 
-        for (BaseValue childBaseValueSaving : childBaseSetSaving.getValues()) {
-            boolean baseValueFound = false;
+        if (childBaseSetSaving != null) {
+            for (BaseValue childBaseValueSaving : childBaseSetSaving.getValues()) {
 
-            if (childBaseSetLoaded != null) {
-                for (BaseValue childBaseValueLoaded : childBaseSetLoaded.getValues()) {
-                    if (processedUUIds.contains(childBaseValueLoaded.getUuid()))
-                        continue;
+                boolean baseValueFound = false;
+                if (childBaseSetLoaded != null) {
+                    for (BaseValue childBaseValueLoaded : childBaseSetLoaded.getValues()) {
+                        if (processedUUIds.contains(childBaseValueLoaded.getUuid()))
+                            continue;
 
-                    if (childBaseValueSaving.equalsByValue(childBaseValueLoaded)) {
-                        processedUUIds.add(childBaseValueLoaded.getUuid());
-                        childBaseSetApplied.put(new BaseValue(childBaseValueSaving.getValue()));
-                        baseValueFound = true;
-                        break;
+                        if (childBaseValueSaving.equalsByValue(childBaseValueLoaded)) {
+                            processedUUIds.add(childBaseValueLoaded.getUuid());
+                            childBaseSetApplied.put(new BaseValue(childBaseValueSaving.getValue()));
+                            baseValueFound = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!baseValueFound)
-                childBaseSetApplied.put(new BaseValue(childBaseValueSaving.getValue()));
+                if (!baseValueFound)
+                    childBaseSetApplied.put(new BaseValue(childBaseValueSaving.getValue()));
+            }
         }
 
         // кумулятивный сет если даже значение не пришло в батче то все равно дополняем сет из ранее загруженных
@@ -467,24 +448,25 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
     //TODO: черновой вариант
     private BaseSet processComplexSet(MetaAttribute metaAttribute, BaseValue baseValueSaving, BaseValue baseValueLoaded, BaseEntityManager baseEntityManager) {
-        if (baseValueSaving == null)
-            throw new IllegalArgumentException("Атрибут пустой");
-
         MetaType metaType = metaAttribute.getMetaType();
 
         MetaSet childMetaSet = (MetaSet) metaType;
         MetaType childMetaType = childMetaSet.getMetaType();
         MetaClass childMetaClass = (MetaClass) childMetaType;
 
-        BaseSet childBaseSetSaving = null;
-        if (baseValueSaving.getValue() != null)
-            childBaseSetSaving = (BaseSet) baseValueSaving.getValue();
+        BaseSet childBaseSetApplied = new BaseSet(childMetaClass);
+        if (baseValueLoaded != null && baseValueSaving == null) {
+            childBaseSetApplied.put(baseValueLoaded);
+            return childBaseSetApplied;
+        }
 
         BaseSet childBaseSetLoaded = null;
         if (baseValueLoaded != null && baseValueLoaded.getValue() != null)
             childBaseSetLoaded = (BaseSet) baseValueLoaded.getValue();
 
-        BaseSet childBaseSetApplied = new BaseSet(childMetaClass);
+        BaseSet childBaseSetSaving = null;
+        if (baseValueSaving != null && baseValueSaving.getValue() != null)
+            childBaseSetSaving = (BaseSet) baseValueSaving.getValue();
 
         Set<UUID> processedUUIds = new HashSet<>();
 
@@ -555,7 +537,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
         while (baseEntityQueue.size() > 0) {
             BaseEntity queuedBaseEntity = baseEntityQueue.poll();
 
-            insertBaseEntityToDb(EavDbSchema.EAV_XML, queuedBaseEntity);
+            insertBaseEntityToDb(EavSchema.EAV_XML, queuedBaseEntity);
 
             for (String attribute : queuedBaseEntity.getAttributeNames()) {
                 MetaAttribute metaAttribute = queuedBaseEntity.getMetaAttribute(attribute);
@@ -583,7 +565,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * наименование таблицы и столбцов берет из мета данных
      * в любой таблице есть обязательные поля (см. код) помимо атрибутов мета класса
      * */
-    private void insertBaseEntityToDb(final EavDbSchema schema, final BaseEntity baseEntitySaving) {
+    private void insertBaseEntityToDb(final EavSchema schema, final BaseEntity baseEntitySaving) {
         if (baseEntitySaving.getId() == null)
             throw new IllegalArgumentException("У сущности отсутствует id ");
 
@@ -609,7 +591,12 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
             MetaAttribute metaAttribute = baseEntitySaving.getMetaAttribute(attribute);
             BaseValue baseValue = baseEntitySaving.getBaseValue(attribute);
 
-            Object sqlValue = convertBaseValueToRelModel(schema.name(), metaAttribute, baseValue);
+            // пустые значения null не конвертируем но отправляем в sql запрос
+            // чтобы обнулять поля если ранее там были значения
+            Object sqlValue = null;
+            if (baseValue.getValue() != null)
+                sqlValue = convertBaseValueToRelModel(schema.name(), metaAttribute, baseValue);
+
             params.addValue(metaAttribute.getColumnName(), sqlValue);
         }
 

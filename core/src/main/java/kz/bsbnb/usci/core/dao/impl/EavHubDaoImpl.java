@@ -27,21 +27,19 @@ public class EavHubDaoImpl implements EavHubDao {
     }
 
     @Override
-    public Long insert(EavHub eavHub) {
+    public void insert(EavHub eavHub) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withSchemaName("EAV_DATA")
-                .withTableName("EAV_HUB")
-                .usingGeneratedKeyColumns("ENTITY_ID");
+                .withTableName("EAV_HUB");
 
-        Number id = simpleJdbcInsert.executeAndReturnKey(new MapSqlParameterSource()
+        int count = simpleJdbcInsert.execute(new MapSqlParameterSource()
                 .addValue("CREDITOR_ID", eavHub.getRespondentId())
                 .addValue("BATCH_ID", eavHub.getBatchId())
                 .addValue("ENTITY_KEY", eavHub.getEntityKey())
                 .addValue("CLASS_ID", eavHub.getMetaClassId()));
 
-        eavHub.setEntityId(id.longValue());
-
-        return id.longValue();
+        if (count != 1)
+            throw new IllegalArgumentException("Ошибка insert записи в таблице EAV_DATA.EAV_HUB");
     }
 
     @Override
@@ -75,10 +73,9 @@ public class EavHubDaoImpl implements EavHubDao {
     public EavHub find(Long entityId) {
         return npJdbcTemplate.queryForObject("select * from EAV_DATA.EAV_HUB where ENTITY_ID = :entityId",
                 new MapSqlParameterSource("entityId", entityId),
-                (rs, rowNum) -> new EavHub(Converter.convertToLong(rs.getObject("respondent_id")),
+                (rs, rowNum) -> new EavHub(rs.getLong("entity_id"), Converter.convertToLong(rs.getObject("respondent_id")),
                         rs.getString("entity_key"),
                         Converter.convertToLong(rs.getObject("class_id")),
-                        rs.getLong("entity_id"),
                         Converter.convertToLong(rs.getObject("batch_id"))));
     }
 

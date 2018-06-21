@@ -21,14 +21,15 @@ public class EavDataFactory {
 
     //это пока черновой вариант
     public BaseEntity createBaseEntity(String metaClassName, LocalDate reportDate, Long respondentId, Long batchId) {
-        return new BaseEntity(metaClassRepository.getMetaClass(metaClassName), reportDate, respondentId, batchId);
+        if (metaClassName == null)
+            throw new IllegalArgumentException("");
+
+        return new BaseEntity(metaClassRepository.getMetaClass(metaClassName), respondentId, reportDate, batchId);
     }
 
     //это пока черновой вариант
     public BaseSet createBaseSet(String metaClassName) {
         return new BaseSet(metaClassRepository.getMetaClass(metaClassName));
     }
-
-
 
 }

@@ -28,6 +28,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
     private Map<String, BaseValue> values = new HashMap<>();
     private Long userId;
     private Parent parent;
+    private Boolean mock = Boolean.FALSE;
 
     public BaseEntity() {
         /*An empty constructor*/
@@ -37,21 +38,28 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         this.metaClass = metaClass;
     }
 
-    public BaseEntity(long id, MetaClass metaClass, Long respondentId) {
+    public BaseEntity(Long id, MetaClass metaClass, Long respondentId) {
         super(id);
         this.metaClass = metaClass;
         this.respondentId = respondentId;
     }
 
-    public BaseEntity(MetaClass metaClass, LocalDate reportDate, Long respondentId, Long batchId) {
+    public BaseEntity(Long id, MetaClass metaClass, Long respondentId, LocalDate reportDate) {
+        super(id);
+        this.metaClass = metaClass;
+        this.reportDate = reportDate;
+        this.respondentId = respondentId;
+    }
+
+    public BaseEntity(Long id, MetaClass metaClass, Long respondentId, LocalDate reportDate, Long batchId) {
+        super(id);
         this.metaClass = metaClass;
         this.reportDate = reportDate;
         this.respondentId = respondentId;
         this.batchId = batchId;
     }
 
-    public BaseEntity(long id, MetaClass metaClass, LocalDate reportDate, Long respondentId, Long batchId) {
-        super(id);
+    public BaseEntity(MetaClass metaClass, Long respondentId, LocalDate reportDate, Long batchId) {
         this.metaClass = metaClass;
         this.reportDate = reportDate;
         this.respondentId = respondentId;
@@ -102,6 +110,14 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         return uuid;
     }
 
+    public Boolean isMock() {
+        return mock;
+    }
+
+    public void setMock(Boolean mock) {
+        this.mock = mock;
+    }
+
     public void put(final String attribute, BaseValue baseValue) {
         MetaAttribute metaAttribute = metaClass.getMetaAttribute(attribute);
         MetaType metaType = metaAttribute.getMetaType();
@@ -112,27 +128,30 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         if (baseValue == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E26));
 
-        Class<?> valueClass = baseValue.getValue().getClass();
-        Class<?> expValueClass;
-
+        // пустые теги <tag/> и null значения не проверяем
         if (baseValue.getValue() != null) {
-            if (metaType.isComplex())
-                if (metaType.isSet())
-                    expValueClass = BaseSet.class;
-                else
-                    expValueClass = BaseEntity.class;
-            else {
-                if (metaType.isSet()) {
-                    expValueClass = BaseSet.class;
-                    valueClass = baseValue.getClass();
-                } else {
-                    MetaValue metaValue = (MetaValue) metaType;
-                    expValueClass = metaValue.getMetaDataType().getDataTypeClass();
-                }
-            }
+            Class<?> valueClass = baseValue.getValue().getClass();
+            Class<?> expValueClass;
 
-            if (expValueClass == null || !expValueClass.isAssignableFrom(valueClass))
-                throw new IllegalArgumentException(Errors.compose(Errors.E27, metaClass.getClassName(), expValueClass, valueClass));
+            if (baseValue.getValue() != null) {
+                if (metaType.isComplex())
+                    if (metaType.isSet())
+                        expValueClass = BaseSet.class;
+                    else
+                        expValueClass = BaseEntity.class;
+                else {
+                    if (metaType.isSet()) {
+                        expValueClass = BaseSet.class;
+                        valueClass = baseValue.getClass();
+                    } else {
+                        MetaValue metaValue = (MetaValue) metaType;
+                        expValueClass = metaValue.getMetaDataType().getDataTypeClass();
+                    }
+                }
+
+                if (expValueClass == null || !expValueClass.isAssignableFrom(valueClass))
+                    throw new IllegalArgumentException(Errors.compose(Errors.E27, metaClass.getClassName(), expValueClass, valueClass));
+            }
         }
 
         baseValue.setMetaAttribute(metaAttribute);
@@ -573,7 +592,7 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         private BaseEntity entity;
         private MetaAttribute attribute;
 
-        public Parent(BaseEntity entity, MetaAttribute attribute) {
+        Parent(BaseEntity entity, MetaAttribute attribute) {
             this.entity = entity;
             this.attribute = attribute;
         }

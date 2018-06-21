@@ -8,7 +8,7 @@ import kz.bsbnb.usci.core.model.EavHub;
 
 public interface EavHubDao {
 
-    Long insert(EavHub eavHub);
+    void insert(EavHub eavHub);
 
     Long find(Long respondentId, Long metaClassId, String entityKey, Long parentEntityId);
 

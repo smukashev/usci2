@@ -1,11 +1,10 @@
 package kz.bsbnb.usci.model.eav.base;
 
-import java.util.*;
-
 import kz.bsbnb.usci.model.Errors;
-import kz.bsbnb.usci.model.eav.meta.MetaAttribute;
 import kz.bsbnb.usci.model.eav.meta.MetaType;
 import kz.bsbnb.usci.model.eav.meta.MetaValue;
+
+import java.util.*;
 
 /**
  * @author BSB
@@ -58,10 +57,6 @@ public class BaseSet implements BaseContainer, Cloneable {
         values.put(name, baseValue);
     }
 
-    public void remove(BaseValue value) {
-        values.remove(value);
-    }
-
     @Override
     public Collection<BaseValue> getValues() {
         return values.values();
@@ -88,7 +83,49 @@ public class BaseSet implements BaseContainer, Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        return false;
+        if (obj == this)
+            return true;
+
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+
+        BaseSet that = (BaseSet) obj;
+
+        MetaType thisMetaType = this.getMetaType();
+        MetaType thatMetaType = that.getMetaType();
+        if (!thisMetaType.equals(thatMetaType))
+            return false;
+
+        if (this.getValueCount() != that.getValueCount())
+            return false;
+
+        Set<UUID> uuids = new HashSet<>();
+        for (BaseValue thisBaseValue : this.getValues()) {
+            boolean found = false;
+
+            for (BaseValue thatBaseValue : that.getValues()) {
+                if (uuids.contains(thatBaseValue.getUuid()))
+                    continue;
+
+                Object thisObject = thisBaseValue.getValue();
+                if (thisObject == null)
+                    throw new RuntimeException(Errors.compose(Errors.E32));
+
+                Object thatObject = thatBaseValue.getValue();
+                if (thatObject == null)
+                    throw new RuntimeException(Errors.compose(Errors.E32));
+
+                if (thisObject.equals(thatObject)) {
+                    uuids.add(thatBaseValue.getUuid());
+                    found = true;
+                }
+            }
+
+            if (!found)
+                return false;
+        }
+
+        return true;
     }
     
     @Override

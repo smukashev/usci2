@@ -7,7 +7,7 @@ public class Persistable {
         super();
     }
 
-    protected Persistable(long id) {
+    protected Persistable(Long id) {
         this.id = id;
     }
 

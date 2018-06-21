@@ -11,10 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author BSB
@@ -22,7 +19,7 @@ import java.util.stream.Stream;
 
 @Service
 public class EavHubServiceImpl implements EavHubService {
-    private final static char KEY_SEPARATOR = '~';
+    private final static char KEY_DELIMITER = '~';
     private DateTimeFormatter HUB_KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private final EavHubDao eavHubDao;
 
@@ -80,7 +77,7 @@ public class EavHubServiceImpl implements EavHubService {
 
 
                 if (sb.length() > 0)
-                    sb.append(KEY_SEPARATOR);
+                    sb.append(KEY_DELIMITER);
 
                 sb.append(key);
             });
@@ -89,20 +86,17 @@ public class EavHubServiceImpl implements EavHubService {
     }
 
     @Override
-    public Long insert(EavHub eavHub) {
-        if (eavHub.getEntityId() == 0)
+    public void insert(EavHub eavHub) {
+        if (eavHub.getEntityId() != null)
             throw new IllegalArgumentException("id сущности для инсерта в EAV_HUB должна быть пустой");
 
-        return eavHubDao.insert(eavHub);
+        eavHubDao.insert(eavHub);
     }
 
     @Override
-    public BaseEntity insert(BaseEntity baseEntity) {
-        Long id = eavHubDao.insert(new EavHub(baseEntity.getRespondentId(), getKeyString(baseEntity),
+    public void insert(BaseEntity baseEntity) {
+        eavHubDao.insert(new EavHub(baseEntity.getId(), baseEntity.getRespondentId(), getKeyString(baseEntity),
                 baseEntity.getMetaClass().getId(), baseEntity.getBatchId()));
-        baseEntity.setId(id);
-
-        return baseEntity;
     }
 
     @Override

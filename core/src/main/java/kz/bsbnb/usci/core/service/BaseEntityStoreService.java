@@ -6,7 +6,7 @@ public interface BaseEntityStoreService {
 
     BaseEntity processBaseEntity(final BaseEntity baseEntitySaving, BaseEntity baseEntityLoaded, BaseEntityManager baseEntityManager);
 
-    void processBaseManager(BaseEntityManager baseEntityManager);
+    void storeBaseManager(BaseEntityManager baseEntityManager);
 
     void storeBaseEntityToSchemaEavXml(final BaseEntity baseEntity);
 

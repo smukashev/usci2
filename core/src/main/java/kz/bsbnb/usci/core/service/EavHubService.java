@@ -5,9 +5,9 @@ import kz.bsbnb.usci.model.eav.base.BaseEntity;
 
 public interface EavHubService {
 
-    Long insert(EavHub eavHub);
+    void insert(EavHub eavHub);
 
-    BaseEntity insert(BaseEntity baseEntity);
+    void insert(BaseEntity baseEntity);
 
     Long find(BaseEntity baseEntity);
 

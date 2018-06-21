@@ -65,16 +65,12 @@ public class BaseValue implements Cloneable {
         return changed;
     }
 
+    public Boolean getChanged() {
+        return changed;
+    }
+
     public void setChanged(Boolean changed) {
         this.changed = changed;
-    }
-
-    public Boolean getMock() {
-        return mock;
-    }
-
-    public void setMock(Boolean mock) {
-        this.mock = mock;
     }
 
     @Override

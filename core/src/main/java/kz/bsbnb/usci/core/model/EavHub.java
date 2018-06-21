@@ -6,7 +6,7 @@ public class EavHub implements Serializable {
     private Long respondentId;
     private String entityKey;
     private Long metaClassId;
-    private long entityId;
+    private Long entityId;
     private Long batchId;
 
     public EavHub() {
@@ -20,11 +20,11 @@ public class EavHub implements Serializable {
         this.batchId = batchId;
     }
 
-    public EavHub(Long respondentId, String entityKey, Long metaClassId, Long entityId, Long batchId) {
+    public EavHub(Long id, Long respondentId, String entityKey, Long metaClassId, Long batchId) {
+        this.entityId = id;
         this.respondentId = respondentId;
         this.entityKey = entityKey;
         this.metaClassId = metaClassId;
-        this.entityId = entityId;
         this.batchId = batchId;
     }
 
@@ -54,7 +54,7 @@ public class EavHub implements Serializable {
         this.metaClassId = metaClassId;
     }
 
-    public long getEntityId() {
+    public Long getEntityId() {
         return entityId;
     }
 

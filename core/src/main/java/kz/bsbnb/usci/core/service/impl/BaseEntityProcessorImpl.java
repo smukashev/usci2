@@ -53,7 +53,7 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
                     throw new UsciException(Errors.compose(Errors.E196, baseEntityPrepared.getId()));
 
                 baseEntityApplied = baseEntityStoreService.processBaseEntity(baseEntityPrepared, null, baseEntityManager);
-                baseEntityStoreService.processBaseManager(baseEntityManager);
+                baseEntityStoreService.storeBaseManager(baseEntityManager);
 
                 // заливаем данные непосредственно в схему EAV_XML
                 baseEntityStoreService.storeBaseEntityToSchemaEavXml(baseEntityPrepared);
@@ -64,7 +64,7 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
                     throw new UsciException(Errors.compose(Errors.E198));
 
                 baseEntityApplied = baseEntityStoreService.processBaseEntity(baseEntityPrepared, null, baseEntityManager);
-                baseEntityStoreService.processBaseManager(baseEntityManager);
+                baseEntityStoreService.storeBaseManager(baseEntityManager);
 
                 // заливаем данные непосредственно в схему EAV_XML
                 baseEntityStoreService.storeBaseEntityToSchemaEavXml(baseEntityPrepared);
