@@ -130,17 +130,13 @@ public class MetaClass extends Persistable implements MetaType {
         attributes.clear();
     }
 
-    public boolean isLink() {
-        if (attributes.size() < 1 || attributes.size() > 1)
-            return false;
-
-        MetaAttribute attribute = attributes.values().stream().findFirst().get();
-        MetaType metaType = attribute.getMetaType();
-
-        return metaType.isComplex() && !metaType.isSet() && attribute.isFinal();
+    /**
+     * признак final сущности
+     * сущность у которой все атрибуты final
+     * */
+    public boolean isFinal() {
+        return attributes.values().stream().filter(MetaAttribute::isFinal).count() == attributes.size();
     }
-
-
 
     public Collection<MetaAttribute> getAttributes() {
         return attributes.values();

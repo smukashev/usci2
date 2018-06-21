@@ -318,7 +318,7 @@ public class BaseEntityProcessorTest {
     @Test
     public void creditChangeRemainsTest() throws SQLException {
         Long respondentId = 2384L;
-        Long batchId = 20L;
+        Long batchId = 22L;
         LocalDate reportDate = LocalDate.of(2018, 9, 1);
 
         BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
@@ -406,6 +406,59 @@ public class BaseEntityProcessorTest {
         change.put("turnover", new BaseValue(turnover));
         turnover.put("issue", new BaseValue(issue));
         issue.put("debt", new BaseValue(debt));
+        credit.put("change", new BaseValue(change));
+
+        baseEntityProcessor.processBaseEntity(credit, reportDate);
+    }
+
+    @Test
+    public void creditChangeRemainsDiscountTest() throws SQLException {
+        Long respondentId = 2384L;
+        Long batchId = 20L;
+        LocalDate reportDate = LocalDate.of(2018, 9, 1);
+
+        BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
+        credit.setId(693L);
+        credit.setOperation(OperType.UPDATE);
+
+        BaseEntity creditor = eavBaseFactory.createBaseEntity("ref_creditor", reportDate, respondentId, batchId);
+        creditor.setId(2384L);
+        BaseSet creditorDocs = eavBaseFactory.createBaseSet("document");
+
+        BaseEntity docType = eavBaseFactory.createBaseEntity("ref_doc_type", reportDate, 0L, batchId);
+        docType.put("code", new BaseValue("15"));
+
+        BaseEntity document = eavBaseFactory.createBaseEntity("document", reportDate, respondentId, batchId);
+        document.put("doc_type", new BaseValue(docType));
+        document.put("no", new BaseValue("ATYNKZKA"));
+
+        creditorDocs.put(new BaseValue(document));
+        credit.put("creditor", new BaseValue(creditor));
+
+        BaseEntity primaryContract = eavBaseFactory.createBaseEntity("primary_contract", reportDate, respondentId, batchId);
+        primaryContract.put("no", new BaseValue("AICC.1354927"));
+        primaryContract.put("date", new BaseValue(LocalDate.of(2017, 8, 31)));
+        credit.put("primary_contract", new BaseValue(primaryContract));
+
+        //change
+        BaseEntity ba1403191 = eavBaseFactory.createBaseEntity("ref_balance_account", reportDate, 0L, batchId);
+        ba1403191.put("no_", new BaseValue("1403191"));
+
+        BaseEntity change = eavBaseFactory.createBaseEntity("change", reportDate, respondentId, batchId);
+        BaseEntity remains = eavBaseFactory.createBaseEntity("remains", reportDate, respondentId, batchId);
+        BaseEntity debt = eavBaseFactory.createBaseEntity("remains_debt", reportDate, respondentId, batchId);
+
+        BaseEntity current = eavBaseFactory.createBaseEntity("remains_debt_current", reportDate, respondentId, batchId);
+        current.put("value", new BaseValue(195376D));
+        current.put("value_currency", new BaseValue(8955D));
+        current.put("balance_account", new BaseValue(ba1403191));
+
+        BaseEntity discount = eavBaseFactory.createBaseEntity("discount", reportDate, respondentId, batchId);
+
+
+        change.put("remains", new BaseValue(remains));
+        remains.put("debt", new BaseValue(debt));
+        debt.put("current", new BaseValue(current));
         credit.put("change", new BaseValue(change));
 
         baseEntityProcessor.processBaseEntity(credit, reportDate);

@@ -17,7 +17,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 /**
  * @author Jandos Iskakov
@@ -41,22 +41,12 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
     @Override
     public BaseEntity loadBaseEntity(Long id, Long respondentId, MetaClass metaClass,
                                      LocalDate existingReportDate, LocalDate savingReportDate) {
-        return loadBaseEntity(id, respondentId, metaClass, null, existingReportDate, savingReportDate);
-    }
+        Objects.requireNonNull(id, Errors.compose(Errors.E93));
+        Objects.requireNonNull(respondentId, Errors.compose(Errors.E93));
+        Objects.requireNonNull(savingReportDate, Errors.compose(Errors.E93));
 
-    private BaseEntity loadBaseEntity(Long id, Long respondentId, MetaClass metaClass, MetaAttribute metaAttribute,
-                                      LocalDate existingReportDate, LocalDate savingReportDate) {
-        if (id == null)
-            throw new IllegalArgumentException(Errors.compose(Errors.E93));
-        if (respondentId == null)
-            throw new IllegalArgumentException(Errors.compose(Errors.E93));
-        if (savingReportDate == null)
-            throw new IllegalArgumentException(Errors.compose(Errors.E93));
-
-        boolean isFinal = metaAttribute != null && metaAttribute.isFinal();
-
-        LocalDate loadingReportDate = Stream.of(existingReportDate, savingReportDate).max(LocalDate::compareTo).get();
-        if (isFinal)
+        LocalDate loadingReportDate = savingReportDate.compareTo(existingReportDate) >= 0? savingReportDate: existingReportDate;
+        if (metaClass.isFinal())
             loadingReportDate = savingReportDate;
 
         BaseEntity baseEntityLoad = new BaseEntity(id, metaClass, respondentId, loadingReportDate);
@@ -86,7 +76,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         sb.append("where $tableAlias.ENTITY_ID = :entityId\n");
         sb.append("  and $tableAlias.CREDITOR_ID = :respondentId\n");
 
-        if (isFinal)
+        if (metaClass.isFinal())
             sb.append("  and $tableAlias.REPORT_DATE = :reportDate\n");
         else
             sb.append("  and $tableAlias.REPORT_DATE = \n" +
@@ -114,14 +104,14 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
             throw new IllegalArgumentException(Errors.compose(Errors.E91, baseEntityLoad));
 
         if (rows.size() < 1) {
-            if (!isFinal)
+            if (!metaClass.isFinal())
                 throw new IllegalStateException(Errors.compose(Errors.E92, baseEntityLoad));
 
             return null;
         }
 
         Map<String, Object> values = rows.get(0);
-        fillEntityAttributes(values, baseEntityLoad, loadingReportDate, savingReportDate);
+        fillEntityAttributes(values, baseEntityLoad, existingReportDate, savingReportDate);
 
         return baseEntityLoad;
     }
@@ -168,8 +158,8 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                     BaseEntity childMockEntity = new BaseEntity(Converter.convertToLong(values.get(attribute.getColumnName())),
                             childMetClass, childMetClass.isDictionary()? 0: baseEntity.getRespondentId(), baseEntity.getReportDate());
 
-                    BaseEntity childBaseEntity = loadBaseEntity(childMockEntity.getId(), childMockEntity.getRespondentId(), childMetClass, attribute,
-                            baseEntity.getReportDate(), savingReportDate);
+                    BaseEntity childBaseEntity = loadBaseEntity(childMockEntity.getId(), childMockEntity.getRespondentId(),
+                            childMetClass, baseEntity.getReportDate(), savingReportDate);
 
                     if (childBaseEntity != null)
                         baseValue = new BaseValue(childBaseEntity);
@@ -215,8 +205,8 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         MetaClass parentMetaClass = parentBaseEntity.getMetaClass();
         String parentTableAlias = parentMetaClass.getClassName().toLowerCase();
 
-        LocalDate loadingReportDate = Stream.of(existingReportDate, savingReportDate).max(LocalDate::compareTo).get();
-        if (metaAttribute.isFinal())
+        LocalDate loadingReportDate = savingReportDate.compareTo(existingReportDate) >= 0? savingReportDate: existingReportDate;
+        if (metaClass.isFinal())
             loadingReportDate = savingReportDate;
 
         // включаю обязательные столбцы которые есть в любой таблице:
@@ -253,7 +243,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         sb.append("  and $tableAlias.ENTITY_ID = $arrayTableAlias.COLUMN_VALUE\n");
         sb.append("  and $tableAlias.CREDITOR_ID = :respondentId\n");
 
-        if (metaAttribute.isFinal())
+        if (metaClass.isFinal())
             sb.append(" and $tableAlias.REPORT_DATE = :reportDate");
         else
             sb.append("  and $tableAlias.REPORT_DATE = \n" +
