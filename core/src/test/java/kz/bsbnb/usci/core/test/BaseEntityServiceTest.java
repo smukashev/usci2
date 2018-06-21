@@ -1,6 +1,6 @@
 package kz.bsbnb.usci.core.test;
 
-import kz.bsbnb.usci.core.factory.EavDataFactory;
+import kz.bsbnb.usci.core.factory.EavBaseFactory;
 import kz.bsbnb.usci.core.service.BaseEntityService;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import org.junit.Before;
@@ -15,13 +15,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDate;
 
+/**
+ * @author Jandos Iskakov
+ */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class BaseEntityServiceTest {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityServiceTest.class);
 
     @Autowired
-    private EavDataFactory eavDataFactory;
+    private EavBaseFactory eavBaseFactory;
     @Autowired
     private BaseEntityService baseEntityService;
 
@@ -36,7 +40,7 @@ public class BaseEntityServiceTest {
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2018, 1, 1);
 
-        BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
+        BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
         Assert.assertTrue(baseEntityService.existsBaseEntity(credit, reportDate));
@@ -48,7 +52,7 @@ public class BaseEntityServiceTest {
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2018, 1, 1);
 
-        BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
+        BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
         //TODO: добавить Assert
@@ -61,7 +65,7 @@ public class BaseEntityServiceTest {
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2017, 1, 1);
 
-        BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
+        BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
         //TODO: добавить Assert

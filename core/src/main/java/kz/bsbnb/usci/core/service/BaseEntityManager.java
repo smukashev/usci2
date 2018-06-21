@@ -6,6 +6,14 @@ import kz.bsbnb.usci.model.eav.base.BaseValue;
 
 import java.util.*;
 
+/**
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
+ * @author Jandos Iskakov
+ */
+
 public class BaseEntityManager {
     private Long respondentId;
 

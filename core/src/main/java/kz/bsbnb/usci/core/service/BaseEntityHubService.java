@@ -3,7 +3,7 @@ package kz.bsbnb.usci.core.service;
 import kz.bsbnb.usci.core.model.EavHub;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 
-public interface EavHubService {
+public interface BaseEntityHubService {
 
     void insert(EavHub eavHub);
 

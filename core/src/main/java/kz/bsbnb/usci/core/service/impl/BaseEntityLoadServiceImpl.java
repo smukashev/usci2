@@ -2,6 +2,7 @@ package kz.bsbnb.usci.core.service.impl;
 
 import kz.bsbnb.usci.core.service.BaseEntityLoadService;
 import kz.bsbnb.usci.model.Errors;
+import kz.bsbnb.usci.model.UsciException;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseSet;
 import kz.bsbnb.usci.model.eav.base.BaseValue;
@@ -16,9 +17,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
- * @author BSB
+ * @author Jandos Iskakov
  */
 
 @Repository
@@ -46,13 +48,16 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                                       LocalDate existingReportDate, LocalDate savingReportDate) {
         if (id == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E93));
-
         if (respondentId == null)
             throw new IllegalArgumentException(Errors.compose(Errors.E93));
-
-        LocalDate loadingReportDate = savingReportDate == null? existingReportDate: savingReportDate.compareTo(existingReportDate) >= 0? savingReportDate: existingReportDate;
+        if (savingReportDate == null)
+            throw new IllegalArgumentException(Errors.compose(Errors.E93));
 
         boolean isFinal = metaAttribute != null && metaAttribute.isFinal();
+
+        LocalDate loadingReportDate = Stream.of(existingReportDate, savingReportDate).max(LocalDate::compareTo).get();
+        if (isFinal)
+            loadingReportDate = savingReportDate;
 
         BaseEntity baseEntityLoad = new BaseEntity(id, metaClass, respondentId, loadingReportDate);
 
@@ -91,9 +96,6 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
                       "          and $subTableAlias.CREDITOR_ID = $tableAlias.CREDITOR_ID\n" +
                       "          and $subTableAlias.REPORT_DATE <= :reportDate)\n");
 
-
-        //TODO: поиск по minReportDate, isFinal
-
         String query = sb.toString();
 
         query = query.replace("$tableAlias", tableAlias);
@@ -128,64 +130,65 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
      * метод заполняет атрибуты сущности значениями полученными из таблицы БД (см. пояснения в коде)
      * */
     private BaseEntity fillEntityAttributes(Map<String, Object> values, BaseEntity baseEntity, LocalDate existingReportDate, LocalDate savingReportDate) {
-        try {
-            MetaClass metaClass = baseEntity.getMetaClass();
+        MetaClass metaClass = baseEntity.getMetaClass();
 
-            baseEntity.setId(Converter.convertToLong(values.get("ENTITY_ID")));
-            baseEntity.setReportDate(Converter.convertToLocalDate((java.sql.Timestamp) values.get("REPORT_DATE")));
-            baseEntity.setBatchId(Converter.convertToLong(values.get("BATCH_ID")));
-            baseEntity.setRespondentId(Converter.convertToLong(values.get("CREDITOR_ID")));
+        baseEntity.setId(Converter.convertToLong(values.get("ENTITY_ID")));
+        baseEntity.setReportDate(Converter.convertToLocalDate((java.sql.Timestamp) values.get("REPORT_DATE")));
+        baseEntity.setBatchId(Converter.convertToLong(values.get("BATCH_ID")));
+        baseEntity.setRespondentId(Converter.convertToLong(values.get("CREDITOR_ID")));
 
-            for (MetaAttribute attribute : metaClass.getAttributes()) {
-                MetaType metaType = attribute.getMetaType();
+        for (MetaAttribute attribute : metaClass.getAttributes()) {
+            MetaType metaType = attribute.getMetaType();
 
-                Object sqlValue = values.get(attribute.getColumnName());
-                if (sqlValue == null)
-                    continue;
+            Object sqlValue = values.get(attribute.getColumnName());
+            if (sqlValue == null)
+                continue;
 
-                BaseValue baseValue;
+            BaseValue baseValue;
 
-                if (metaType.isComplex()) {
-                    if (metaType.isSet()) {
-                        BaseSet baseSet = loadComplexSet(baseEntity, attribute, existingReportDate);
-                        OracleArray oracleArray = (OracleArray) sqlValue;
+            if (metaType.isComplex()) {
+                if (metaType.isSet()) {
+                    BaseSet baseSet = loadComplexSet(baseEntity, attribute, baseEntity.getReportDate(), savingReportDate);
+                    OracleArray oracleArray = (OracleArray) sqlValue;
 
+                    try {
                         // сравниваю кол-во записей в сете в столбце сущности и кол-во сущностей в сете которые были подгружены отдельным запросом
                         if (baseSet.getValueCount() != oracleArray.length())
                             throw new IllegalStateException("Кол-во элементов в множестве не верное " + baseSet);
-
-                        baseValue = new BaseValue(baseSet);
-                    } else {
-                        // отдельно подгружаю зависимую сущность
-                        // в столбце хранится id зависимой сущности, ссылка нужна чтобы потом подгузить эту зависимую сущность из БД
-                        // пример: справочники и тд
-                        MetaClass childMetClass = (MetaClass) attribute.getMetaType();
-                        BaseEntity mockEntity = new BaseEntity(Converter.convertToLong(values.get(attribute.getColumnName())),
-                                childMetClass, childMetClass.isDictionary()? 0: baseEntity.getRespondentId(), existingReportDate);
-
-                        BaseEntity childBaseEntity = loadBaseEntity(mockEntity.getId(), mockEntity.getRespondentId(), childMetClass, attribute, existingReportDate, existingReportDate);
-
-                        if (childBaseEntity != null)
-                            baseValue = new BaseValue(childBaseEntity);
-                        else {
-                            // так как final сущности живут только в пределах одного отчетного периода
-                            // записи по ним может и не быть, тогда переиспользую id и помечаю как mock обьект
-                            baseValue = new BaseValue(mockEntity);
-                            mockEntity.setMock(Boolean.TRUE);
-                        }
+                    } catch (SQLException e) {
+                        throw new UsciException(e.getMessage());
                     }
-                } else {
-                    if (metaType.isSet()) {
-                        throw new UnsupportedOperationException("Not yet implemented");//TODO: simple set
-                    } else
-                        baseValue = new BaseValue(convertRmValueToJavaType(attribute, sqlValue));
-                }
 
-                if (baseValue != null)
-                    baseEntity.put(attribute.getName(), baseValue);
+                    baseValue = new BaseValue(baseSet);
+                } else {
+                    // отдельно подгружаю зависимую сущность
+                    // в столбце хранится id зависимой сущности, ссылка нужна чтобы потом подгузить эту зависимую сущность из БД
+                    // пример: справочники и тд
+                    MetaClass childMetClass = (MetaClass) attribute.getMetaType();
+                    BaseEntity childMockEntity = new BaseEntity(Converter.convertToLong(values.get(attribute.getColumnName())),
+                            childMetClass, childMetClass.isDictionary()? 0: baseEntity.getRespondentId(), baseEntity.getReportDate());
+
+                    BaseEntity childBaseEntity = loadBaseEntity(childMockEntity.getId(), childMockEntity.getRespondentId(), childMetClass, attribute,
+                            baseEntity.getReportDate(), savingReportDate);
+
+                    if (childBaseEntity != null)
+                        baseValue = new BaseValue(childBaseEntity);
+                    else {
+                        // так как final сущности живут только в пределах одного отчетного периода
+                        // записи по ним может и не быть, тогда переиспользую id и помечаю как mock обьект
+                        baseValue = new BaseValue(childMockEntity);
+                        childMockEntity.setMock(Boolean.TRUE);
+                    }
+                }
+            } else {
+                if (metaType.isSet()) {
+                    throw new UnsupportedOperationException("Not yet implemented");//TODO: simple set
+                } else
+                    baseValue = new BaseValue(convertRmValueToJavaType(attribute, sqlValue));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+            if (baseValue != null)
+                baseEntity.put(attribute.getName(), baseValue);
         }
 
         return baseEntity;
@@ -204,7 +207,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
           and ...
       также необходимо добавить подзапрос чтобы получить последнюю актуальную запись сущности
      * */
-    private BaseSet loadComplexSet(BaseEntity parentBaseEntity, MetaAttribute metaAttribute, LocalDate reportDate) {
+    private BaseSet loadComplexSet(BaseEntity parentBaseEntity, MetaAttribute metaAttribute, LocalDate existingReportDate, LocalDate savingReportDate) {
         MetaSet metaSet = (MetaSet) metaAttribute.getMetaType();
         MetaClass metaClass = (MetaClass) metaSet.getMetaType();
         String tableAlias = metaClass.getClassName().toLowerCase();
@@ -212,7 +215,11 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         MetaClass parentMetaClass = parentBaseEntity.getMetaClass();
         String parentTableAlias = parentMetaClass.getClassName().toLowerCase();
 
-        // включаю обязательные столбцы которые есть в любой таблие:
+        LocalDate loadingReportDate = Stream.of(existingReportDate, savingReportDate).max(LocalDate::compareTo).get();
+        if (metaAttribute.isFinal())
+            loadingReportDate = savingReportDate;
+
+        // включаю обязательные столбцы которые есть в любой таблице:
         // ENTITY_ID - id сущности, REPORT_DATE - отчетная дата
         // CREDITOR_ID - id респондента, BATCH_ID - id батча по которому прилетела последняя операция
         StringBuilder sb = new StringBuilder("select $tableAlias.ENTITY_ID,\n");
@@ -246,7 +253,6 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         sb.append("  and $tableAlias.ENTITY_ID = $arrayTableAlias.COLUMN_VALUE\n");
         sb.append("  and $tableAlias.CREDITOR_ID = :respondentId\n");
 
-        //TODO: decide
         if (metaAttribute.isFinal())
             sb.append(" and $tableAlias.REPORT_DATE = :reportDate");
         else
@@ -271,9 +277,8 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         params.addValue("parentEntityId", parentBaseEntity.getId());
         params.addValue("respondentId", parentBaseEntity.getRespondentId());
         params.addValue("parentReportDate", Converter.convertToSqlDate(parentBaseEntity.getReportDate()));
-        params.addValue("reportDate", Converter.convertToSqlDate(reportDate));
+        params.addValue("reportDate", Converter.convertToSqlDate(loadingReportDate));
 
-        //TODO: поиск по maxReportDate, isFinal
         List<Map<String, Object>> rows = npJdbcTemplate.queryForList(query, params);
 
         if (rows.size() < 1)
@@ -283,7 +288,7 @@ public class BaseEntityLoadServiceImpl implements BaseEntityLoadService {
         for (Map<String, Object> row : rows) {
             BaseEntity baseEntity = new BaseEntity(metaClass);
 
-            baseEntity = fillEntityAttributes(row, baseEntity, reportDate, reportDate/*TODO: savingReportDate*/);
+            baseEntity = fillEntityAttributes(row, baseEntity, existingReportDate, savingReportDate);
 
             baseSet.put(new BaseValue(baseEntity));
         }

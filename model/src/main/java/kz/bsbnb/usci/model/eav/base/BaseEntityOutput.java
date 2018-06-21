@@ -10,7 +10,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public class BaseEntityOutput {

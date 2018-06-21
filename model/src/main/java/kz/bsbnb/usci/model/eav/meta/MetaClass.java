@@ -7,7 +7,10 @@ import java.time.LocalDate;
 import java.util.*;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public class MetaClass extends Persistable implements MetaType {

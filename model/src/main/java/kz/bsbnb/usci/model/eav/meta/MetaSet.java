@@ -4,7 +4,10 @@ import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.Persistable;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public class MetaSet extends Persistable implements MetaType {

@@ -15,7 +15,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
+ * @author Jandos Iskakov
  */
 
 @Repository

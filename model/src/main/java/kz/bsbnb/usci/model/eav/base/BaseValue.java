@@ -10,7 +10,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public class BaseValue implements Cloneable {

@@ -32,7 +32,7 @@ public class MetaClassRepositoryImpl implements MetaClassRepository, Initializin
     @Override
     public void afterPropertiesSet() throws Exception {
         //TODO: в режиме разработки очень сильно тормозит
-        // включать только на production
+        // TODO: включать только на production
         if (true) return;
 
         lock.readLock().lock();

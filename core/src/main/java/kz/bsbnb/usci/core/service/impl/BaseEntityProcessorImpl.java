@@ -13,18 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
+ * @author Jandos Iskakov
  */
 
 @Service
 public class BaseEntityProcessorImpl implements BaseEntityProcessor {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityProcessorImpl.class);
 
-    private final EavHubService eavHubService;
+    private final BaseEntityHubService baseEntityHubService;
     private final BaseEntityStoreService baseEntityStoreService;
 
-    public BaseEntityProcessorImpl(EavHubService eavHubService, BaseEntityStoreService baseEntityStoreService) {
-        this.eavHubService = eavHubService;
+    public BaseEntityProcessorImpl(BaseEntityHubService baseEntityHubService, BaseEntityStoreService baseEntityStoreService) {
+        this.baseEntityHubService = baseEntityHubService;
         this.baseEntityStoreService = baseEntityStoreService;
     }
 
@@ -150,7 +154,7 @@ public class BaseEntityProcessorImpl implements BaseEntityProcessor {
     // TODO: поиск сущности пока все нюансы не учитывает
     // TODO: черновой вариант
     private Long searchBaseEntity(BaseEntity baseEntity) {
-        return eavHubService.find(baseEntity);
+        return baseEntityHubService.find(baseEntity);
     }
 
 }

@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author BSB
+ * @author Jandos Iskakov
  */
 
 @Repository

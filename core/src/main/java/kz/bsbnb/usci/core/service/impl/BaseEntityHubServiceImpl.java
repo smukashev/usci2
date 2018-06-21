@@ -2,7 +2,7 @@ package kz.bsbnb.usci.core.service.impl;
 
 import kz.bsbnb.usci.core.dao.EavHubDao;
 import kz.bsbnb.usci.core.model.EavHub;
-import kz.bsbnb.usci.core.service.EavHubService;
+import kz.bsbnb.usci.core.service.BaseEntityHubService;
 import kz.bsbnb.usci.model.Errors;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import kz.bsbnb.usci.model.eav.base.BaseValue;
@@ -14,16 +14,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
- * @author BSB
+ * @author Jandos Iskakov
  */
 
 @Service
-public class EavHubServiceImpl implements EavHubService {
+public class BaseEntityHubServiceImpl implements BaseEntityHubService {
     private final static char KEY_DELIMITER = '~';
     private DateTimeFormatter HUB_KEY_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private final EavHubDao eavHubDao;
 
-    public EavHubServiceImpl(EavHubDao eavHubDao) {
+    public BaseEntityHubServiceImpl(EavHubDao eavHubDao) {
         this.eavHubDao = eavHubDao;
     }
 

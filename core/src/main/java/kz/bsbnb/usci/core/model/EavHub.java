@@ -2,6 +2,10 @@ package kz.bsbnb.usci.core.model;
 
 import java.io.Serializable;
 
+/**
+ * @author Jandos Iskakov
+ */
+
 public class EavHub implements Serializable {
     private Long respondentId;
     private String entityKey;

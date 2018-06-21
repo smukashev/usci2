@@ -1,13 +1,8 @@
 package kz.bsbnb.usci.core.test;
 
-import kz.bsbnb.usci.core.factory.EavDataFactory;
+import kz.bsbnb.usci.core.factory.EavBaseFactory;
 import kz.bsbnb.usci.core.service.BaseEntityProcessor;
-import kz.bsbnb.usci.core.service.EavHubService;
-import kz.bsbnb.usci.model.eav.base.BaseEntity;
-import kz.bsbnb.usci.model.eav.base.BaseSet;
-import kz.bsbnb.usci.model.eav.base.BaseValue;
-import kz.bsbnb.usci.model.eav.base.OperType;
-import org.junit.Assert;
+import kz.bsbnb.usci.core.service.BaseEntityHubService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,8 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.sql.SQLException;
-import java.time.LocalDate;
+/**
+ * @author Jandos Iskakov
+ */
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,11 +22,11 @@ public class BaseEntityTest {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityTest.class);
 
     @Autowired
-    private EavDataFactory eavDataFactory;
+    private EavBaseFactory eavBaseFactory;
     @Autowired
     private BaseEntityProcessor baseEntityProcessor;
     @Autowired
-    private EavHubService eavHubService;
+    private BaseEntityHubService baseEntityHubService;
 
     @Before
     public void setUp() {

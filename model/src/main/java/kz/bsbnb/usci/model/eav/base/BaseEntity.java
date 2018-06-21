@@ -12,10 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
-public class BaseEntity extends Persistable implements BaseContainer, Cloneable {
+public class BaseEntity extends Persistable implements BaseType, Cloneable {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntity.class);
 
     private UUID uuid = UUID.randomUUID();
@@ -364,7 +367,6 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         return true;
     }
 
-    @Override
     public Collection<BaseValue> getValues() {
         return values.values();
     }
@@ -583,7 +585,6 @@ public class BaseEntity extends Persistable implements BaseContainer, Cloneable 
         return true;
     }
 
-    @Override
     public int getValueCount() {
         return values.size();
     }

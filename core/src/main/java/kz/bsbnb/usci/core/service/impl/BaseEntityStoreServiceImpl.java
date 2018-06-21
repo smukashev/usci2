@@ -12,7 +12,6 @@ import kz.bsbnb.usci.util.Converter;
 import oracle.jdbc.driver.OracleConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -26,22 +25,30 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
+ * @author Jandos Iskakov
+ */
+
 @Service
 public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityProcessorImpl.class);
 
-    private final EavHubService eavHubService;
+    private final BaseEntityHubService baseEntityHubService;
     private final BaseEntityService baseEntityService;
     private final BaseEntityLoadService baseEntityLoadService;
     private final NamedParameterJdbcTemplate npJdbcTemplate;
     private final JdbcTemplate jdbcTemplate;
 
-    public BaseEntityStoreServiceImpl(EavHubService eavHubService,
+    public BaseEntityStoreServiceImpl(BaseEntityHubService baseEntityHubService,
                                       BaseEntityService baseEntityService,
                                       BaseEntityLoadService baseEntityLoadService,
                                       NamedParameterJdbcTemplate npJdbcTemplate,
                                       JdbcTemplate jdbcTemplate) {
-        this.eavHubService = eavHubService;
+        this.baseEntityHubService = baseEntityHubService;
         this.baseEntityService = baseEntityService;
         this.baseEntityLoadService = baseEntityLoadService;
         this.npJdbcTemplate = npJdbcTemplate;
@@ -119,7 +126,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
 
             // если мета класс имеет ключевые поля то загружаем его в hub иначе ему там нечего появлятся
             if (metaClass.isSearchable())
-                eavHubService.insert(baseEntity);
+                baseEntityHubService.insert(baseEntity);
 
             insertBaseEntityToDb(EavSchema.EAV_DATA, baseEntity);
         }
@@ -566,8 +573,7 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      * в любой таблице есть обязательные поля (см. код) помимо атрибутов мета класса
      * */
     private void insertBaseEntityToDb(final EavSchema schema, final BaseEntity baseEntitySaving) {
-        if (baseEntitySaving.getId() == null)
-            throw new IllegalArgumentException("У сущности отсутствует id ");
+        Objects.requireNonNull(baseEntitySaving.getId(), "У сущности отсутствует id ");
 
         MetaClass metaClass = baseEntitySaving.getMetaClass();
 
@@ -630,8 +636,8 @@ public class BaseEntityStoreServiceImpl implements BaseEntityStoreService {
      *    and REPORT_DATE = :REPORT_DATE
      * */
     private void updateBaseEntityInDb(final BaseEntity baseEntitySaving, boolean shiftReportDate) {
-        if (baseEntitySaving.getId() == null)
-            throw new IllegalArgumentException("Ошибка отсутствия у сущности id");
+        Objects.requireNonNull(baseEntitySaving.getId(), "Ошибка отсутствия у сущности id");
+
         if (baseEntitySaving.getValueCount() == 0)
             throw new IllegalArgumentException("У сущности отсутствуют значения");
 

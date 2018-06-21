@@ -1,7 +1,10 @@
 package kz.bsbnb.usci.model.eav.meta;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public class MetaValue implements MetaType {

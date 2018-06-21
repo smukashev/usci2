@@ -7,10 +7,13 @@ import kz.bsbnb.usci.model.eav.meta.MetaValue;
 import java.util.*;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
-public class BaseSet implements BaseContainer, Cloneable {
+public class BaseSet implements BaseType, Cloneable {
     private MetaType metaType;
 
     // использование HashMap вместе HashSet сделано преднамеренно
@@ -57,7 +60,6 @@ public class BaseSet implements BaseContainer, Cloneable {
         values.put(name, baseValue);
     }
 
-    @Override
     public Collection<BaseValue> getValues() {
         return values.values();
     }
@@ -223,7 +225,6 @@ public class BaseSet implements BaseContainer, Cloneable {
         return getElSimple(filter);
     }
 
-    @Override
     public int getValueCount() {
         return values.size();
     }

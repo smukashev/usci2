@@ -1,7 +1,7 @@
 package kz.bsbnb.usci.core.test;
 
 import kz.bsbnb.usci.core.service.BaseEntityLoadService;
-import kz.bsbnb.usci.core.factory.EavDataFactory;
+import kz.bsbnb.usci.core.factory.EavBaseFactory;
 import kz.bsbnb.usci.model.eav.base.BaseEntity;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,13 +14,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDate;
 
+/**
+ * @author Jandos Iskakov
+ */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class BaseEntityLoadServiceTest {
     private static final Logger logger = LoggerFactory.getLogger(BaseEntityLoadServiceTest.class);
 
     @Autowired
-    private EavDataFactory eavDataFactory;
+    private EavBaseFactory eavBaseFactory;
     @Autowired
     private BaseEntityLoadService baseEntityLoadService;
 
@@ -35,7 +39,7 @@ public class BaseEntityLoadServiceTest {
         Long batchId = Math.round(Math.random());
         LocalDate reportDate = LocalDate.of(2018, 1, 1);
 
-        BaseEntity credit = eavDataFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
+        BaseEntity credit = eavBaseFactory.createBaseEntity("credit", reportDate, respondentId, batchId);
         credit.setId(693L);
 
         credit = baseEntityLoadService.loadBaseEntity(credit.getId(), credit.getRespondentId(), credit.getMetaClass(), reportDate, reportDate);

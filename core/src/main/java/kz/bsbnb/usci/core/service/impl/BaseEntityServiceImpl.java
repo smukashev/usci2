@@ -9,14 +9,16 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
+ * @author Jandos Iskakov
  */
 
 @Service
@@ -34,12 +36,9 @@ public class BaseEntityServiceImpl implements BaseEntityService {
      * */
     @Override
     public boolean existsBaseEntity(BaseEntity baseEntity, LocalDate reportDate) {
-        if (baseEntity.getId() == null)
-            throw new IllegalArgumentException("У сущности отсутствует id");
-        if (baseEntity.getRespondentId() == null)
-            throw new IllegalArgumentException("У сущности отсутствует id респондента");
-        if (baseEntity.getMetaClass() == null)
-            throw new IllegalArgumentException("У сущности отсутствует metaClass");
+        Objects.requireNonNull(baseEntity.getId(), "У сущности отсутствует id");
+        Objects.requireNonNull(baseEntity.getRespondentId(), "У сущности отсутствует id респондента");
+        Objects.requireNonNull(baseEntity.getMetaClass(), "У сущности отсутствует metaClass");
 
         MetaClass metaClass = baseEntity.getMetaClass();
 
@@ -69,12 +68,9 @@ public class BaseEntityServiceImpl implements BaseEntityService {
      * */
     @Override
     public LocalDate getMaxReportDate(BaseEntity baseEntity, LocalDate reportDate) {
-        if (baseEntity.getId() == null || baseEntity.getId() < 1)
-            throw new IllegalArgumentException("У сущности отсутствует id");
-        if (baseEntity.getRespondentId() == null)
-            throw new IllegalArgumentException("У сущности отсутствует id респондента");
-        if (baseEntity.getMetaClass() == null)
-            throw new IllegalArgumentException("У сущности отсутствует metaClass");
+        Objects.requireNonNull(baseEntity.getId(), "У сущности отсутствует id");
+        Objects.requireNonNull(baseEntity.getRespondentId(), "У сущности отсутствует id респондента");
+        Objects.requireNonNull(baseEntity.getMetaClass(), "У сущности отсутствует metaClass");
 
         MetaClass metaClass = baseEntity.getMetaClass();
 
@@ -104,12 +100,9 @@ public class BaseEntityServiceImpl implements BaseEntityService {
      * */
     @Override
     public LocalDate getMinReportDate(BaseEntity baseEntity, LocalDate reportDate) {
-        if (baseEntity.getId() == null || baseEntity.getId() < 1)
-            throw new IllegalArgumentException("У сущности отсутствует id");
-        if (baseEntity.getRespondentId() == null)
-            throw new IllegalArgumentException("У сущности отсутствует id респондента");
-        if (baseEntity.getMetaClass() == null)
-            throw new IllegalArgumentException("У сущности отсутствует metaClass");
+        Objects.requireNonNull(baseEntity.getId(), "У сущности отсутствует id");
+        Objects.requireNonNull(baseEntity.getRespondentId(), "У сущности отсутствует id респондента");
+        Objects.requireNonNull(baseEntity.getMetaClass(), "У сущности отсутствует metaClass");
 
         MetaClass metaClass = baseEntity.getMetaClass();
 

@@ -10,7 +10,10 @@ import java.time.LocalDate;
 import java.util.Date;
 
 /**
- * @author BSB
+ * @author Artur Tkachenko
+ * @author Alexandr Motov
+ * @author Kanat Tulbassiev
+ * @author Baurzhan Makhambetov
  */
 
 public enum MetaDataType {

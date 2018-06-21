@@ -6,29 +6,28 @@ import kz.bsbnb.usci.model.eav.base.BaseSet;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-
-/**
- * @author BSB
- */
+import java.util.Objects;
 
 @Component
-public class EavDataFactory {
+public class EavBaseFactory {
     private final MetaClassRepository metaClassRepository;
 
-    public EavDataFactory(MetaClassRepository metaClassRepository) {
+    public EavBaseFactory(MetaClassRepository metaClassRepository) {
         this.metaClassRepository = metaClassRepository;
     }
 
-    //это пока черновой вариант
     public BaseEntity createBaseEntity(String metaClassName, LocalDate reportDate, Long respondentId, Long batchId) {
-        if (metaClassName == null)
-            throw new IllegalArgumentException("");
+        Objects.requireNonNull(metaClassName);
+        Objects.requireNonNull(respondentId);
+        Objects.requireNonNull(reportDate);
+        Objects.requireNonNull(batchId);
 
         return new BaseEntity(metaClassRepository.getMetaClass(metaClassName), respondentId, reportDate, batchId);
     }
 
-    //это пока черновой вариант
     public BaseSet createBaseSet(String metaClassName) {
+        Objects.requireNonNull(metaClassName);
+
         return new BaseSet(metaClassRepository.getMetaClass(metaClassName));
     }
 
